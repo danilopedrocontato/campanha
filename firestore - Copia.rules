@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // O coordenador inicial já foi criado, então este e-mail não é mais usado.
+    function emailDoCoordenador() { return 'SEU_EMAIL@exemplo.com'; }
+
+    function logado() { return request.auth != null; }
+    function perfilDoc() { return /databases/$(database)/documents/perfis/$(request.auth.uid); }
+    function adminDoc() { return /databases/$(database)/documents/config/admin; }
+    function tem() { return logado() && exists(perfilDoc()); }
+    function papel() { return get(perfilDoc()).data.papel; }
+    function coord() { return tem() && papel() == 'coordenador'; }
+    function liberado() { return tem() && papel() in ['cabo', 'coordenador']; }
+    function souOCoordenadorInicial() {
+      return logado()
+        && request.auth.token.email.lower() == emailDoCoordenador()
+        && !exists(adminDoc());
+    }
+
+    match /config/admin {
+      allow read: if logado();
+      allow create: if souOCoordenadorInicial()
+        && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Dados da campanha (candidato, número, cargo, partido, foto)
+    match /config/campanha {
+      allow read: if liberado();
+      allow write: if coord();
+    }
+
+    match /perfis/{uid} {
+      allow get: if logado() && (uid == request.auth.uid || coord());
+      allow list: if coord();
+      allow create: if logado() && uid == request.auth.uid
+        && (request.resource.data.papel == 'pendente'
+            || (request.resource.data.papel == 'coordenador'
+                && souOCoordenadorInicial()
+                && getAfter(adminDoc()).data.uid == request.auth.uid));
+      // Cada pessoa edita o próprio nome e a própria foto
+      allow update: if logado() && uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['foto', 'nome'])
+        && request.resource.data.nome.size() < 80
+        && (!('foto' in request.resource.data) || request.resource.data.foto.size() < 60000);
+      // Coordenador define áreas e meta de qualquer pessoa
+      allow update: if coord()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['areas', 'meta']);
+      // Coordenador muda o papel dos outros (nunca o próprio)
+      allow update: if coord() && uid != request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['papel'])
+        && request.resource.data.papel in ['pendente', 'cabo', 'coordenador'];
+    }
+
+    // Materiais digitais: todos os liberados veem; só o coordenador publica
+    match /materiais/{id} {
+      allow read: if liberado();
+      allow write: if coord();
+    }
+
+    // Cadastro antigo de cabos (não é mais usado pelo app)
+    match /cabos/{id} {
+      allow read: if liberado();
+      allow write: if coord();
+    }
+
+    // Eleitores e locais: o cabo só lê as áreas que o coordenador liberou
+    match /locais/{id} {
+      allow read: if coord() || (liberado() && resource.data.area in get(perfilDoc()).data.areas);
+      allow write: if coord();
+    }
+
+    // Visitas: o cabo só lê as áreas liberadas e só registra em nome dele mesmo
+    match /visitas/{id} {
+      allow read: if coord() || (liberado() && resource.data.area in get(perfilDoc()).data.areas);
+      allow create: if liberado() && request.resource.data.criado_por == request.auth.uid
+        && (coord() || request.resource.data.area in get(perfilDoc()).data.areas);
+      allow update: if coord();
+      allow delete: if coord() || (liberado() && resource.data.criado_por == request.auth.uid);
+    }
+  }
+}
