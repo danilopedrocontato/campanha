@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rota Patriota</title>
+<meta name="theme-color" content="#007a30">
+<meta name="description" content="Gestão de cabos eleitorais: cadastre locais, trace rotas no Waze e acompanhe as visitas da equipe.">
+<meta property="og:type" content="website"><meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Rota Patriota">
+<meta property="og:description" content="Gestão de cabos eleitorais: cadastre locais, trace rotas no Waze e acompanhe as visitas da equipe.">
+<meta property="og:image" content="https://rotapatriota.netlify.app/share.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://rotapatriota.netlify.app/"><meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Rota Patriota">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2064%2045%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Crect%20width%3D%2264%22%20height%3D%2245%22%20fill%3D%22%23009c3b%22/%3E%3Cpolygon%20points%3D%2232%2C5%2059%2C22.5%2032%2C40%205%2C22.5%22%20fill%3D%22%23ffdf00%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222.5%22%20r%3D%2210.5%22%20fill%3D%22%23002776%22/%3E%3Cpath%20d%3D%22M22.2%2020.5Q32%2017.5%2042%2024.5%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20fill%3D%22none%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f3f7f1;--surf:#fff;--ink:#0b1f4d;--mut:#4d5c7a;--line:#d3dccf;--accent:#ffdf00;--on-accent:#002776;--teal:#00803a;--red:#c2410c;--blue:#1d4fbf;--green:#009c3b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07142e;--surf:#0f2349;--ink:#f3f6ff;--mut:#a7b4d4;--line:#22386a;--teal:#3fd37f;--red:#fb923c;--blue:#8fb0ff}}
+:root[data-theme="dark"]{--bg:#07142e;--surf:#0f2349;--ink:#f3f6ff;--mut:#a7b4d4;--line:#22386a;--teal:#3fd37f;--red:#fb923c;--blue:#8fb0ff}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+main{max-width:720px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.02em;margin:8px 0 2px}
+h2{font-size:1.1rem;font-weight:600;margin:24px 0 10px}
+p.sub{color:var(--mut);margin:0 0 16px}
+nav{position:fixed;left:0;right:0;bottom:0;background:#007a30;border-top:4px solid #ffdf00;display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav div{display:flex;width:100%;max-width:720px}
+nav button{flex:1;padding:14px 4px;border:0;background:none;color:rgba(255,255,255,.78);font:600 .95rem inherit;font-family:inherit;cursor:pointer;border-top:3px solid transparent}
+nav button[aria-selected=true]{color:#fff;background:rgba(0,0,0,.2)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.hero{background:linear-gradient(135deg,#00692a,#009c3b);color:#fff;border-radius:14px;padding:20px}
+.hero .big{color:#ffdf00;font-size:3.4rem;font-weight:800;line-height:1;letter-spacing:-.03em}
+.hero .big small{color:#fff;font-size:1.2rem;font-weight:600;opacity:.7}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden}
+.hero .bar{background:rgba(255,255,255,.2);margin-top:14px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{font-size:1.5rem;display:block}
+.stat span{color:var(--mut);font-size:.85rem}
+.item{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.item .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.item .meta{color:var(--mut);font-size:.88rem}
+.item .bar{margin-top:8px;height:8px}
+.item .bar i{background:var(--teal)}
+label{display:block;font-weight:600;font-size:.9rem;margin:12px 0 4px}
+input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--ink);font:inherit;font-size:1rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.btn{margin-top:18px;width:100%;padding:14px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);font:800 1rem inherit;font-family:inherit;cursor:pointer}
+.btn.alt{background:none;border:1px solid var(--line);color:var(--ink);font-weight:600}
+.link{background:none;border:0;color:var(--red);cursor:pointer;font:inherit;font-size:.85rem;padding:4px 0}
+.empty{text-align:center;color:var(--mut);padding:28px 12px;border:1px dashed var(--line);border-radius:10px}
+.tag{display:inline-block;font-size:.8rem;padding:2px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600}
+@media (prefers-color-scheme:dark){.toast{background:var(--accent);color:#14213d}}
+nav button{font-size:.85rem}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--mut);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;border:1px solid var(--ink)}
+.mapbox{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surf)}
+#map{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+.zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--surf);color:var(--ink);font-size:1.2rem;cursor:pointer}
+a.btn{display:block;text-align:center;text-decoration:none}
+.mapbox canvas{position:absolute;left:0;top:0;width:100%;height:100%}
+#map{position:relative}
+.gl{stroke:var(--line);stroke-width:1}
+.bl{fill:var(--mut);font-size:22px;font-weight:600;opacity:.6;text-anchor:middle;pointer-events:none}
+.pl{fill:var(--ink);font-size:26px;font-weight:800;text-anchor:middle;paint-order:stroke;stroke:var(--surf);stroke-width:6px;pointer-events:none}
+[hidden]{display:none!important}
+#lmap{height:62vh;min-height:360px;border-radius:12px;border:1px solid var(--line);z-index:0}
+.pin{background:none;border:0}
+.leaflet-popup .pbtn{display:block;margin-top:6px;padding:9px 10px;border-radius:8px;text-align:center;text-decoration:none;font-weight:700;color:#14213d;background:#ffc61a}
+.leaflet-popup .pbtn.wa{background:#25d366}
+body.cabo .coord-only{display:none!important}
+.top{background:linear-gradient(90deg,#007a30,#009c3b);border-bottom:4px solid #ffdf00;color:#fff;padding:12px 16px}
+.top .in{display:flex;align-items:center;gap:12px;max-width:720px;margin:0 auto}
+.top svg{width:56px;height:auto;flex:none;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+.top b{display:block;font-size:1.3rem;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.top span{font-size:.85rem;opacity:.92}
+.item{border-left:4px solid var(--green)}
+h1{color:var(--ink)}
+
+:root{--bg:#fff;--chip:#f0f2ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--chip:#1a2f5c}}
+:root[data-theme="dark"]{--chip:#1a2f5c}
+h1{font-size:2rem;margin:14px 0 4px}
+h2{font-size:1.35rem;font-weight:800;margin:28px 0 12px}
+.top{background:var(--surf);color:var(--ink);padding:10px 16px 0;border:0}
+.top .in{display:flex;align-items:center;justify-content:space-between;max-width:720px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px}
+.top svg{width:40px;height:auto;flex:none;border-radius:5px;box-shadow:none}
+.top .ic{width:22px;height:22px;box-shadow:none}
+.top b{font-size:1.2rem;font-weight:800;letter-spacing:-.01em;display:inline}
+.acts{display:flex;align-items:center;gap:10px}
+.ib,.av{width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;padding:0;overflow:hidden;font:800 1rem inherit;font-family:inherit}
+.ib{background:var(--chip);color:var(--ink)}
+.av{background:#009c3b;color:#fff;box-shadow:0 0 0 2px #ffdf00}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av.big{width:64px;height:64px;font-size:1.6rem;flex:none}.av.sm{width:36px;height:36px;font-size:.95rem;flex:none}
+.stripe{height:4px;background:linear-gradient(90deg,#009c3b 33.3%,#ffdf00 33.3% 66.6%,#002776 66.6%);margin:10px -16px 0}
+.prof{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+nav{left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 24px);max-width:560px;bottom:calc(10px + env(safe-area-inset-bottom,0px));background:var(--surf);border:0;border-radius:30px;box-shadow:0 6px 28px rgba(0,0,0,.25);padding:0}
+nav div{max-width:none;padding:4px}
+nav button{display:flex;flex-direction:column;align-items:center;gap:2px;margin:2px;padding:8px 2px;border:0;border-radius:24px;color:var(--mut);font-size:.72rem;font-weight:700}
+nav button[aria-selected=true]{background:var(--chip);color:var(--ink)}
+nav button[aria-selected=true] .ic{color:#009c3b}
+.ic{width:24px;height:24px;flex:none}
+.seg{display:flex;gap:8px;margin:12px 0}
+.seg button{border:0;border-radius:99px;padding:10px 18px;background:var(--chip);color:var(--ink);font:700 .95rem inherit;font-family:inherit;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.search{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 16px;border-radius:999px;background:var(--surf);box-shadow:0 2px 14px rgba(0,0,0,.16)}
+.sb{flex:1;display:flex;align-items:center;gap:12px;border:0;background:none;color:var(--mut);font:inherit;font-size:1.05rem;text-align:left;cursor:pointer;padding:10px 0}
+.pill{border:0;background:var(--chip);color:var(--ink);font:700 .9rem inherit;font-family:inherit;padding:11px 16px;border-radius:99px;cursor:pointer}
+.list{background:var(--surf);border-radius:16px;box-shadow:0 0 0 1px var(--line);margin-top:16px;overflow:hidden}
+.row2{display:flex;align-items:center;gap:14px;padding:14px;width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.row2+.row2{border-top:1px solid var(--line)}
+.sq{width:44px;height:44px;border-radius:10px;background:var(--chip);display:grid;place-items:center;flex:none}
+.row2 .t{flex:1;min-width:0}.row2 .t b{display:block}
+.row2 .t span{color:var(--mut);font-size:.9rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.circ{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.circ button{background:none;border:0;color:inherit;font:inherit;font-size:.9rem;cursor:pointer}
+.circ i{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--chip);margin:0 auto 6px}
+.scroller{display:flex;gap:12px;overflow-x:auto;padding:4px 16px 10px;margin:0 -16px;scroll-snap-type:x mandatory}
+.card2{flex:none;width:76%;max-width:300px;min-height:160px;border-radius:18px;padding:18px;color:#fff;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:space-between;font-weight:600}
+.card2 .n{font-size:2.8rem;font-weight:800;line-height:1.05}
+.card2 .bar{background:rgba(255,255,255,.28);margin-top:10px}.card2 .bar i{background:#ffdf00}
+.item{border:0;border-radius:14px;box-shadow:0 0 0 1px var(--line)}
+.btn{background:#008a31;color:#fff;border-radius:14px}
+.btn.alt{background:none;color:var(--ink)}
+input,select,textarea{background:var(--chip);border:0;border-radius:12px}
+#lmap{border-radius:18px}
+summary.btn::-webkit-details-marker{display:none}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surf);color:var(--ink);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><div class="brand"><svg viewBox="0 0 64 45" role="img" aria-label="Bandeira do Brasil"><rect width="64" height="45" fill="#009c3b"/><polygon points="32,3 61,22.5 32,42 3,22.5" fill="#ffdf00"/><circle cx="32" cy="22.5" r="10.5" fill="#002776"/><path d="M22.5 21.5Q32 25.5 41.5 20" stroke="#fff" stroke-width="1.8" fill="none"/></svg><b>Rota Patriota</b></div><div class="acts"><button id="shr" class="ib" aria-label="Indicar o app"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button><button id="av" class="av" aria-label="Minha conta" hidden></button></div></div><div class="stripe"></div></header>
+<main id="app"></main>
+<nav><div role="tablist" id="tabs"></div></nav>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var CFG={apiKey:"AIzaSyBUppxd63rbKsxgl-rYDM3rxNZj8eiNTk0",authDomain:"rota-patriota.firebaseapp.com",projectId:"rota-patriota",appId:"1:1048214012050:web:ebb613a9679473c36c264b"};
+var fa=null,db=null,ME=null,KEY="cabos-eleitorais-v1", S={cabos:[],visitas:[],locais:[]}, tab="painel", selLoc=null, selReg="", view=null, impMsg="", per="hoje", focusBusca=false, dpr=null;
+function save(){}
+var $=function(s){return document.querySelector(s)};
+var esc=function(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+var hoje=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)};
+function sum(arr,k){return arr.reduce(function(a,v){return a+(+v[k]||0)},0)}
+function toast(m){var t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove()},1800)}
+
+function tabs(){
+  var T=[["painel","Início","inicio"],["mapa","Mapa","mapa"],["registrar","Visita","visita"],["locais","Locais","locais"],["equipe","Equipe","equipe"]];
+  $("#tabs").innerHTML=T.map(function(t){return '<button role="tab" aria-selected="'+(tab===t[0])+'" data-t="'+t[0]+'">'+ico(t[2])+'<span>'+t[1]+'</span></button>'}).join("");
+  $("#tabs").onclick=function(e){var b=e.target.closest("button");if(b){tab=b.dataset.t;render();scrollTo(0,0);loadAll().then(function(ch){if(ch)render()})}};
+}
+
+
+function registrar(){
+  if(!S.cabos.length)return '<h1>Registrar visita</h1><div class="empty">Cadastre um cabo na aba Equipe antes de registrar visitas.</div>';
+  var opts=S.cabos.map(function(c){return '<option value="'+c.id+'" data-b="'+esc(c.bairro)+'">'+esc(c.nome)+'</option>'}).join("");
+  var rec=S.visitas.slice().reverse().slice(0,6).map(function(v){var c=S.cabos.find(function(x){return x.id===v.cabo});
+    return '<div class="item"><div class="top"><strong>'+esc(c?c.nome:"(removido)")+'</strong><span class="meta">'+v.data.split("-").reverse().join("/")+'</span></div><div class="meta">'+esc(v.bairro)+' · '+v.contatos+' contatos · '+v.fav+' fav, '+v.ind+' ind, '+v.con+' contr.</div>'+(v.obs?'<div class="meta">'+esc(v.obs)+'</div>':'')+'<button class="link" data-del-v="'+v.id+'">Excluir registro</button></div>'}).join("");
+  return '<h1>Registrar visita</h1><p class="sub">Preencha ao fim de cada saída de campo</p><div id="fv">'+
+  '<label for="vc">Cabo eleitoral</label><select id="vc">'+opts+'</select>'+
+  '<label for="vb">Bairro visitado</label><input id="vb" placeholder="Ex.: Centro">'+
+  '<label for="vd">Data</label><input id="vd" type="date" value="'+hoje()+'">'+
+  '<label for="vn">Pessoas contatadas</label><input id="vn" type="number" min="0" inputmode="numeric" placeholder="0">'+
+  '<div class="g3"><div><label for="vf">Favoráveis</label><input id="vf" type="number" min="0" inputmode="numeric"></div><div><label for="vi">Indecisos</label><input id="vi" type="number" min="0" inputmode="numeric"></div><div><label for="vx">Contrários</label><input id="vx" type="number" min="0" inputmode="numeric"></div></div>'+
+  '<label for="vo">Observações</label><textarea id="vo" rows="2" placeholder="Demandas ouvidas, pedidos de material, retornos"></textarea>'+
+  '<button class="btn" id="sv">Salvar visita</button></div><h2>Últimos registros</h2>'+(rec||'<div class="empty">Nenhuma visita registrada.</div>');
+}
+
+function equipe(){
+  var lst=S.cabos.map(function(c){var tot=sum(S.visitas.filter(function(v){return v.cabo===c.id}),"contatos");
+    return '<div class="item"><div class="top"><strong>'+esc(c.nome)+'</strong><span class="tag">meta '+c.meta+'/dia</span></div><div class="meta">'+esc(c.bairro)+(c.tel?' · '+esc(c.tel):'')+' · '+tot+' contatos no total</div>'+
+    (c.tel?'<a class="link" style="color:var(--teal)" href="https://wa.me/55'+String(c.tel).replace(/\D/g,"")+'" target="_blank" rel="noopener">Chamar no WhatsApp</a> &nbsp; ':'')+'<button class="link coord-only" data-del-c="'+c.id+'">Remover</button></div>'}).join("");
+  return '<h1>Equipe</h1><p class="sub">'+S.cabos.length+' cabos cadastrados</p><div id="fc" class="coord-only">'+
+  '<label for="cn">Nome</label><input id="cn" autocomplete="off">'+
+  '<label for="ct">Telefone (com DDD)</label><input id="ct" type="tel" inputmode="tel" placeholder="31 99999-0000">'+
+  '<label for="cb">Bairro de atuação</label><input id="cb">'+
+  '<label for="cm">Meta de contatos por dia</label><input id="cm" type="number" min="1" inputmode="numeric" value="30">'+
+  '<button class="btn" id="sc">Adicionar cabo</button></div><h2>Cabos cadastrados</h2>'+(lst||'<div class="empty">Nenhum cabo cadastrado.</div>')+rodape();
+}
+
+var TIPOS={"Eleitor a visitar":"#d62828","Comitê":"#ffc61a","Ponto de encontro":"#0f7b6c","Liderança":"#2b59c3","Evento":"#c2410c","Outro":"#8a94a6"};
+function num(v){var n=parseFloat(String(v==null?"":v).replace(",","."));return isNaN(n)?null:n}
+function okLL(a,b){return a!=null&&b!=null&&Math.abs(a)<=90&&Math.abs(b)<=180&&!(a===0&&b===0)}
+function parseLL(s){var m=String(s||"").match(/-?\d+(?:[.,]\d+)?/g);if(!m||m.length<2)return null;var a=num(m[0]),b=num(m[1]);return okLL(a,b)?[a,b]:null}
+function hasLL(l){return typeof l.lat==="number"&&typeof l.lng==="number"}
+function place(l){return encodeURIComponent((l.endereco||l.nome)+" "+(l.bairro||""))}
+function wazeUrl(l){return hasLL(l)?"https://waze.com/ul?ll="+l.lat+","+l.lng+"&navigate=yes":"https://waze.com/ul?q="+place(l)+"&navigate=yes"}
+function gmapsUrl(l){return "https://www.google.com/maps/dir/?api=1&destination="+(hasLL(l)?l.lat+","+l.lng:place(l))}
+var REGS=[["Alterosas",-19.995,-44.235],["Centro",-19.968,-44.198],["Citrolândia",-20.045,-44.215],["Icaivera",-19.960,-44.235],["Imbiruçu",-19.945,-44.255],["Norte",-19.940,-44.200],["Petrovale",-20.010,-44.190],["PTB",-19.995,-44.170],["Teresópolis",-19.982,-44.214],["Vianópolis",-19.950,-44.165]];
+var COL=["#e6194b","#3cb44b","#4363d8","#f58231","#911eb4","#1fa7c9","#d02fc0","#b59b00","#2f8f86","#9a6324"],RM=140,GB=null;
+var KW={"Alterosas":["alterosa"],"Centro":["=centro"],"Citrolândia":["citrolandia"],"Icaivera":["icaivera"],"Imbiruçu":["imbirucu","imbiruss","jardimcalifornia","laranjeiras","jardimsantacruz","celsoalvespedrosa","saocristovao","pintos"],"Norte":["belavista","tiradentes","reservadamata","senhoradasgracas","viladasflores","granroyalle","santalucia","angola"],"Petrovale":["petrovale","joaoleite","jardimmontreal","jardimnazareno","recantodalagoa","donagraziela","estanciadosereno"],"PTB":["ptb","guanabara","camposeliseos","palmeiras","donaizabel","paulocamilo","vilaverde","pintados","presidentekennedy","granjadascandeias"],"Teresópolis":["teresopolis"],"Vianópolis":["vianopolis"]};
+function nrm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+function regFrom(v){var n=nrm(v);if(!n)return "";var r=REGS.filter(function(x){var m=nrm(x[0]);return m===n||m===n+"s"||m+"s"===n})[0];return r?r[0]:""}
+function regOf(l){
+  if(l.regional)return l.regional;
+  var b=nrm(l.bairro),i,j,k,ks;
+  if(b)for(i=0;i<REGS.length;i++){ks=KW[REGS[i][0]]||[];for(j=0;j<ks.length;j++){k=ks[j];if(k[0]==="="?b===k.slice(1):b.indexOf(k)>=0)return REGS[i][0]}}
+  if(hasLL(l)){var c=Math.cos(l.lat*Math.PI/180),bd=1e9,bn="";REGS.forEach(function(r){var d=Math.pow(l.lat-r[1],2)+Math.pow((l.lng-r[2])*c,2);if(d<bd){bd=d;bn=r[0]}});if(bd<0.0049)return bn}
+  return ""}
+var LM=null,regFilter="",geoBusy=false;
+function waUrl(l){var d=String(l.contato||"").replace(/\D/g,"");if(d.length<10)return "";if(d.length<=11)d="55"+d;return "https://wa.me/"+d}
+function pinIcon(c){return L.divIcon({className:"pin",html:'<svg viewBox="0 0 24 32" width="30" height="40"><path d="M12 1C5.9 1 1 5.9 1 12c0 8.5 11 19 11 19s11-10.5 11-19C23 5.9 18.1 1 12 1z" fill="'+c+'" stroke="#14213d" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" fill="#fff"/></svg>',iconSize:[30,40],iconAnchor:[15,40],popupAnchor:[0,-36]})}
+function popupHtml(l){
+  return '<strong>'+esc(l.nome)+'</strong><br>'+esc([l.endereco,l.bairro].filter(Boolean).join(" \u00b7 "))+'<br>'+(l.aprox?'<em>Localização aproximada (não achei o número exato)</em><br>':'')+(l.contato?esc(l.contato)+'<br>':'')+(l.obs?'<em>'+esc(l.obs)+'</em><br>':'')+
+  '<a class="pbtn" href="'+wazeUrl(l)+'" target="_blank" rel="noopener">Ir com o Waze</a>'+(waUrl(l)?'<a class="pbtn wa" href="'+waUrl(l)+'" target="_blank" rel="noopener">WhatsApp</a>':'')}
+function mapa(){
+  var n=S.locais.filter(hasLL).length,m=S.locais.length-n;
+  var opts='<option value="">Todas as regionais</option>'+REGS.map(function(r){return '<option'+(regFilter===r[0]?' selected':'')+'>'+r[0]+'</option>'}).join("");
+  return '<h1>Mapa</h1><p class="sub">Toque num pino para ir ao local pelo Waze ou chamar no WhatsApp</p>'+
+   '<div class="legend">'+Object.keys(TIPOS).map(function(t){return '<span><i style="background:'+TIPOS[t]+'"></i>'+t+'</span>'}).join("")+'</div>'+
+   '<select id="rf" aria-label="Filtrar por regional" style="margin-bottom:10px">'+opts+'</select><div id="lmap"></div>'+
+   '<div class="meta" id="mapmsg" role="status" style="margin-top:8px">'+n+' no mapa'+(m?', '+m+' sem localiza\u00e7\u00e3o. <button class="link" style="color:var(--blue)" id="geo">Localizar endere\u00e7os</button>':'')+'</div>'}
+function bindMap(){
+  if(LM){try{LM.remove()}catch(e){}LM=null}
+  var el=$("#lmap");if(!el)return;
+  if(!window.L){el.innerHTML='<div class="empty">O mapa n\u00e3o carregou. Verifique a internet e recarregue a p\u00e1gina.</div>';return}
+  LM=L.map(el).setView([-19.9677,-44.1978],12);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(LM);
+  var bs=[];
+  S.locais.filter(function(l){return hasLL(l)&&(!regFilter||regOf(l)===regFilter)}).forEach(function(l){
+    var mk=L.marker([l.lat,l.lng],{icon:pinIcon(TIPOS[l.tipo]||TIPOS.Outro),title:l.nome}).addTo(LM).bindPopup(popupHtml(l));
+    bs.push([l.lat,l.lng]);if(l.id===selLoc)setTimeout(function(){mk.openPopup()},400)});
+  if(bs.length)LM.fitBounds(bs,{padding:[40,40],maxZoom:16});
+  $("#rf").onchange=function(){regFilter=this.value;selLoc=null;render()}}
+function locais(){
+  var opts=Object.keys(TIPOS).map(function(t){return '<option>'+t+'</option>'}).join("");
+  var lst=S.locais.map(function(l){return '<div class="item" data-q="'+esc(fold([l.nome,l.bairro,l.endereco,regOf(l),l.tipo].join(" ")))+'"><div class="top"><strong>'+esc(l.nome)+'</strong><span class="tag">'+esc(l.tipo)+'</span></div><div class="meta">'+esc([l.bairro,l.endereco].filter(Boolean).join(" · "))+(regOf(l)?' · Regional '+regOf(l):' · sem regional')+(hasLL(l)?'':' · sem coordenadas (fora do mapa)'+(l.geofail?' · endereço não encontrado':''))+'</div>'+
+    (hasLL(l)?'<button class="link" style="color:var(--teal)" data-map="'+l.id+'">Ver no mapa</button> &nbsp; ':'')+'<a class="link" style="color:var(--blue)" href="'+wazeUrl(l)+'" target="_blank" rel="noopener">Waze</a> &nbsp; '+(waUrl(l)?'<a class="link" style="color:var(--teal)" href="'+waUrl(l)+'" target="_blank" rel="noopener">WhatsApp</a> &nbsp; ':'')+'<button class="link coord-only" style="color:var(--teal)" data-edit="'+l.id+'">Editar</button> &nbsp; <button class="link coord-only" data-del-l="'+l.id+'">Remover</button></div>'}).join("");
+  return '<h1>Locais</h1><p class="sub">'+S.locais.length+' locais, '+S.locais.filter(hasLL).length+' no mapa</p><input id="bq" type="search" placeholder="Buscar por nome, bairro ou endereço" aria-label="Buscar locais" style="margin-bottom:6px">'+
+  '<details class="coord-only"><summary class="btn alt" style="list-style:none;cursor:pointer;text-align:center">+ Adicionar ou importar locais</summary><h2>Importar planilha</h2><p class="meta">Arquivo .csv ou .xlsx com cabeçalho na primeira linha. Colunas aceitas: nome, tipo, regional, bairro, endereço, latitude, longitude (ou coordenadas), contato, obs. Só "nome" é obrigatória. Sem coordenadas, o app localiza o endereço no mapa sozinho (um por segundo).</p><input id="lf" type="file" accept=".csv,.xlsx,.xls,.txt"><div class="meta" id="lm" role="status">'+esc(impMsg)+'</div>'+
+  '<h2>Adicionar manualmente</h2><div>'+
+  '<label for="ln">Nome do local</label><input id="ln" autocomplete="off">'+
+  '<label for="lt">Tipo</label><select id="lt">'+opts+'</select>'+
+  '<label for="lb">Bairro</label><input id="lb">'+
+  '<label for="lr">Regional</label><select id="lr"><option value="">Automática (pelo bairro ou coordenadas)</option>'+REGS.map(function(r){return '<option>'+r[0]+'</option>'}).join("")+'</select>'+
+  '<label for="le">Endereço</label><input id="le" placeholder="Rua, número, bairro, CEP (Betim é assumida)">'+
+  '<label for="lc">Coordenadas (latitude, longitude)</label><input id="lc" placeholder="-19.9677, -44.1983"><div class="meta">No Google Maps, segure o dedo sobre o local e copie os números que aparecem.</div>'+
+  '<label for="lk">Contato</label><input id="lk">'+
+  '<label for="lo">Observações</label><textarea id="lo" rows="2"></textarea>'+
+  '<button class="btn" id="sl">Adicionar local</button></div></details><h2>Locais cadastrados</h2>'+(lst||'<div class="empty">Nenhum local ainda.</div>')+(S.locais.length?'<button class="link coord-only" id="lx">Remover todos os locais</button>':'')}
+
+function importar(f){
+  if(!f)return;
+  var ext=f.name.split(".").pop().toLowerCase();
+  f.arrayBuffer().then(function(buf){
+    var rows,ws;
+    if(ext==="xlsx"||ext==="xls"){
+      if(!window.XLSX){impMsg="A leitura de .xlsx não carregou. Salve a planilha como .csv e tente de novo.";return render()}
+      var wb=XLSX.read(buf,{type:"array"});ws=wb.Sheets[wb.SheetNames[0]];
+    }else{
+      var t;try{t=new TextDecoder("utf-8",{fatal:true}).decode(buf)}catch(e){t=new TextDecoder("windows-1252").decode(buf)}
+      t=t.replace(/^\uFEFF/,"");
+      if(window.XLSX){var w2=XLSX.read(t,{type:"string"});ws=w2.Sheets[w2.SheetNames[0]]}
+      else rows=t.split(/\r?\n/).filter(Boolean).map(function(l){return l.split(l.indexOf(";")>-1?";":",")});
+    }
+    if(ws)rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""});
+    var norm=function(s){return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")};
+    var A={nome:"nome",local:"nome",ponto:"nome",tipo:"tipo",categoria:"tipo",bairro:"bairro",endereco:"endereco",rua:"endereco",logradouro:"endereco",lat:"lat",latitude:"lat",lng:"lng",lon:"lng",long:"lng",longitude:"lng",coordenadas:"coord",coordenada:"coord",coords:"coord",contato:"contato",telefone:"contato",tel:"contato",whatsapp:"contato",fone:"contato",obs:"obs",observacao:"obs",observacoes:"obs",regional:"regional",regiao:"regional"};
+    var hd=(rows[0]||[]).map(function(h){return A[norm(h)]||""});
+    if(hd.indexOf("nome")<0){impMsg='Não encontrei a coluna "nome" na primeira linha da planilha.';return render()}
+    var ok=0,sem=0,arr=[];
+    rows.slice(1).forEach(function(r){
+      var o={};hd.forEach(function(k,i){if(k)o[k]=String(r[i]==null?"":r[i]).trim()});
+      if(!o.nome)return;
+      var a=num(o.lat),b=num(o.lng),ll=okLL(a,b)?[a,b]:parseLL(o.coord);
+      var tp=Object.keys(TIPOS).filter(function(t){return norm(t)===norm(o.tipo||"")})[0]||"Outro";
+      arr.push({nome:o.nome,tipo:tp,regional:regFrom(o.regional),bairro:o.bairro||"",endereco:o.endereco||"",lat:ll?ll[0]:null,lng:ll?ll[1]:null,contato:o.contato||"",obs:o.obs||""});
+      ok++;if(!ll)sem++});
+    return sbImport(arr,ok,sem);
+  }).catch(function(){impMsg="Não consegui ler esse arquivo.";render()})}
+
+function isCoord(){return !!ME&&ME.papel==="coordenador"}
+function errMsg(e){var m={"auth/invalid-credential":"e-mail ou senha incorretos","auth/invalid-email":"e-mail inv\u00e1lido","auth/email-already-in-use":"este e-mail j\u00e1 tem conta","auth/weak-password":"a senha precisa ter 6 caracteres ou mais","auth/too-many-requests":"muitas tentativas, aguarde um pouco","auth/user-not-found":"e-mail ou senha incorretos","auth/wrong-password":"e-mail ou senha incorretos","permission-denied":"sem permiss\u00e3o para esta a\u00e7\u00e3o"};return m[e.code]||e.message}
+function col(n){return db.collection(n)}
+async function readCol(n){var r=await col(n).get();return r.docs.map(function(d){var o=d.data();o.id=d.id;return o})}
+function byNome(a,b){return String(a.nome||"").localeCompare(String(b.nome||""))}
+function byTime(a,b){return (a.criado_em||0)-(b.criado_em||0)}
+function sair(){return fa.signOut().then(function(){ME=null;S={cabos:[],visitas:[],locais:[],acessos:[]};render()})}
+async function loadMe(){
+  var u=fa.currentUser;if(!u){ME=null;return}
+  var d=await col("perfis").doc(u.uid).get();
+  if(!d.exists){
+    var base={email:u.email,nome:String(u.email).split("@")[0],criado_em:Date.now()},first=false;
+    try{var c=await col("config").doc("admin").get();
+      if(!c.exists){var b=db.batch();b.set(col("config").doc("admin"),{uid:u.uid});b.set(col("perfis").doc(u.uid),Object.assign({papel:"coordenador"},base));await b.commit();first=true}}catch(e){}
+    if(!first)await col("perfis").doc(u.uid).set(Object.assign({papel:"pendente"},base));
+    d=await col("perfis").doc(u.uid).get()}
+  var p=d.data();ME={id:u.uid,email:u.email,nome:p.nome||u.email,papel:p.papel||"pendente",foto:p.foto||""}}
+async function loadAll(){
+  if(!ME||(ME.papel!=="coordenador"&&ME.papel!=="cabo"))return false;
+  var r;
+  try{r=await Promise.all([readCol("cabos"),readCol("locais"),readCol("visitas"),isCoord()?readCol("perfis"):Promise.resolve([])])}
+  catch(e){toast("Erro ao carregar os dados: "+errMsg(e));return false}
+  var ns={cabos:r[0].sort(byNome),locais:r[1].sort(byNome),visitas:r[2].sort(byTime),acessos:r[3].sort(byTime)};
+  var ch=JSON.stringify(ns)!==JSON.stringify(S);S=ns;return ch}
+async function dbDo(p,msg){
+  try{await p}catch(e){toast("Erro: "+errMsg(e));return false}
+  await loadAll();if(msg)toast(msg);render();return true}
+function gate(){
+  var q=function(id){return document.getElementById(id)};
+  $("#app").innerHTML=ME?'<h1>Aguardando libera\u00e7\u00e3o</h1><p class="sub">Sua conta ('+esc(ME.email)+') foi criada. O coordenador precisa liberar o acesso. Depois, toque em Atualizar.</p><button class="btn" id="re">Atualizar</button><button class="btn alt" id="out">Sair</button>':
+   '<h1>Bem-vindo</h1><p class="sub">Entre com seu e-mail e senha</p><label for="em">E-mail</label><input id="em" type="email" autocomplete="username"><label for="pw">Senha</label><input id="pw" type="password" autocomplete="current-password"><button class="btn" id="in">Entrar</button><button class="btn alt" id="up">Criar conta</button><div class="meta" id="gm" role="status" style="margin-top:10px"></div>';
+  var go=async function(){try{await loadMe();await loadAll()}catch(e){toast(errMsg(e));return}render()};
+  if(q("in"))q("in").onclick=async function(){try{await fa.signInWithEmailAndPassword(q("em").value.trim(),q("pw").value)}catch(e){q("gm").textContent="N\u00e3o foi poss\u00edvel entrar: "+errMsg(e);return}go()};
+  if(q("up"))q("up").onclick=async function(){try{await fa.createUserWithEmailAndPassword(q("em").value.trim(),q("pw").value)}catch(e){q("gm").textContent="N\u00e3o foi poss\u00edvel criar a conta: "+errMsg(e);return}go()};
+  if(q("re"))q("re").onclick=go;
+  if(q("out"))q("out").onclick=sair}
+
+function bind(){
+  var q=function(id){return document.getElementById(id)};
+  if(q("goeq"))q("goeq").onclick=function(){tab="equipe";render()};
+  if(q("vc")){var sync=function(){var o=q("vc").selectedOptions[0];q("vb").value=o?o.dataset.b:""};q("vc").onchange=sync;sync()}
+  if(q("sv"))q("sv").onclick=function(){
+    var n=+q("vn").value||0,f=+q("vf").value||0,i=+q("vi").value||0,x=+q("vx").value||0;
+    if(n<=0){toast("Informe quantas pessoas foram contatadas");return}
+    if(f+i+x>n){toast("Favor\u00e1veis + indecisos + contr\u00e1rios passa do total");return}
+    dbDo(col("visitas").add({cabo:q("vc").value,bairro:q("vb").value.trim(),data:q("vd").value||hoje(),contatos:n,fav:f,ind:i,con:x,obs:q("vo").value.trim(),criado_por:ME.id,criado_em:Date.now()}),"Visita salva")};
+  if(q("sc"))q("sc").onclick=function(){
+    var nome=q("cn").value.trim();if(!nome){toast("Informe o nome do cabo");return}
+    dbDo(col("cabos").add({nome:nome,tel:q("ct").value.trim(),bairro:q("cb").value.trim()||"Sem bairro",meta:+q("cm").value||30,criado_em:Date.now()}),"Cabo adicionado")};
+  document.querySelectorAll("[data-del-c]").forEach(function(b){b.onclick=function(){
+    if(!confirm("Remover este cabo? As visitas dele continuam no hist\u00f3rico."))return;
+    dbDo(col("cabos").doc(b.dataset.delC).delete())}});
+  document.querySelectorAll("[data-del-v]").forEach(function(b){b.onclick=function(){
+    dbDo(col("visitas").doc(b.dataset.delV).delete())}})}
+
+async function delTodos(){for(var i=0;i<S.locais.length;i+=400){var b=db.batch();S.locais.slice(i,i+400).forEach(function(l){b.delete(col("locais").doc(l.id))});await b.commit()}}
+
+function bind2(){
+  var q=function(id){return document.getElementById(id)};
+  bindMap();
+  document.querySelectorAll("[data-go]").forEach(function(b){b.onclick=function(){tab=b.dataset.go;focusBusca=!!b.dataset.focus;render();scrollTo(0,0)}});
+  document.querySelectorAll("[data-per]").forEach(function(b){b.onclick=function(){per=b.dataset.per;render()}});
+  var bq=q("bq");if(bq){bq.oninput=function(){var t=fold(bq.value).split(/\s+/).filter(Boolean);document.querySelectorAll(".item[data-q]").forEach(function(it){var x=it.dataset.q;it.hidden=!t.every(function(k){return x.indexOf(k)>=0})})};if(focusBusca){focusBusca=false;bq.focus()}}
+  document.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(){editLocal(b.dataset.edit)}});
+  if(q("shr2"))q("shr2").onclick=indicar;
+  if(q("inst")){q("inst").hidden=!dpr;q("inst").onclick=function(){if(dpr){dpr.prompt();dpr=null;q("inst").hidden=true}}}
+  if(q("pn"))q("pn").onclick=function(){var n=q("pnome").value.trim();if(!n){toast("Informe seu nome");return}
+    dbDo(col("perfis").doc(ME.id).update({nome:n}),"Nome atualizado").then(async function(ok){if(ok){await loadMe();render()}})};
+  if(q("pf"))q("pf").onchange=function(){var f=this.files[0];if(!f)return;
+    redimensiona(f,function(d){dbDo(col("perfis").doc(ME.id).update({foto:d}),"Foto atualizada").then(async function(ok){if(ok){await loadMe();render()}})})};
+  if(q("out"))q("out").onclick=sair;
+  document.querySelectorAll("[data-pap]").forEach(function(b){b.onclick=function(){dbDo(col("perfis").doc(b.dataset.uid).update({papel:b.dataset.pap}),"Acesso atualizado")}});
+  if(q("sl"))q("sl").onclick=async function(){
+    var nome=q("ln").value.trim();if(!nome){toast("Informe o nome do local");return}
+    var cs=q("lc").value.trim(),ll=cs?parseLL(cs):null;
+    if(cs&&!ll){toast("Coordenadas inv\u00e1lidas. Use o formato -19.9677, -44.1983");return}
+    var ok=await dbDo(col("locais").add({nome:nome,tipo:q("lt").value,regional:q("lr").value,bairro:q("lb").value.trim(),endereco:q("le").value.trim(),lat:ll?ll[0]:null,lng:ll?ll[1]:null,contato:q("lk").value.trim(),obs:q("lo").value.trim(),geofail:false,criado_por:ME.id,criado_em:Date.now()}),"Local adicionado");
+    if(ok)geocodeAll()};
+  if(q("geo"))q("geo").onclick=async function(){
+    if(!isCoord()){toast("S\u00f3 o coordenador localiza endere\u00e7os");return}
+    var b=db.batch();S.locais.filter(function(l){return l.geofail}).forEach(function(l){b.update(col("locais").doc(l.id),{geofail:false})});
+    try{await b.commit()}catch(e){toast(errMsg(e));return}
+    await loadAll();geocodeAll()};
+  if(q("lf"))q("lf").onchange=function(){impMsg="";importar(this.files[0])};
+  if(q("lx"))q("lx").onclick=function(){if(confirm("Remover todos os locais cadastrados para todos os usu\u00e1rios?")){selLoc=null;dbDo(delTodos())}};
+  document.querySelectorAll("[data-map]").forEach(function(b){b.onclick=function(){selLoc=b.dataset.map;selReg=regOf(S.locais.find(function(l){return l.id===selLoc})||{});tab="mapa";render();scrollTo(0,0)}});
+  document.querySelectorAll("[data-fix]").forEach(function(b){b.onclick=function(){
+    var v=prompt("Cole as coordenadas do Google Maps (segure o dedo sobre o local e copie os números). Exemplo: -19.9677, -44.1983");
+    if(v===null)return;var ll=parseLL(v);if(!ll){toast("Coordenadas inválidas");return}
+    dbDo(col("locais").doc(b.dataset.fix).update({lat:ll[0],lng:ll[1],aprox:false,geofail:false}),"Localização corrigida")}});
+  document.querySelectorAll("[data-del-l]").forEach(function(b){b.onclick=function(){dbDo(col("locais").doc(b.dataset.delL).delete())}})}
+
+async function sbImport(arr,ok,sem){
+  try{for(var i=0;i<arr.length;i+=400){var b=db.batch();
+    arr.slice(i,i+400).forEach(function(a){b.set(col("locais").doc(),Object.assign({geofail:false,criado_por:ME.id,criado_em:Date.now()},a))});
+    await b.commit()}}
+  catch(e){impMsg="Erro ao salvar: "+errMsg(e);render();return}
+  await loadAll();
+  impMsg=ok+" locais importados"+(sem?". Localizando "+sem+" endere\u00e7os no mapa...":".");render();geocodeAll()}
+
+function pause(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function limpaEnd(e){return String(e||"").replace(/^r\.?\s+/i,"Rua ").replace(/^av\.?\s+/i,"Avenida ").replace(/^trav\.?\s+/i,"Travessa ").replace(/^al\.?\s+/i,"Alameda ").replace(/^est\.?\s+/i,"Estrada ").replace(/^rod\.?\s+/i,"Rodovia ").replace(/\bn[\u00ba\u00b0o]\.?\s*(?=\d)/gi,"").trim()}
+async function cepInfo(c){try{var r=await fetch("https://brasilapi.com.br/api/cep/v2/"+c);if(!r.ok)return null;return await r.json()}catch(e){return null}}
+async function geoOne(l){
+  var end=limpaEnd(l.endereco),bai=String(l.bairro||"").trim(),cm=end.match(/\b(\d{5})-?(\d{3})\b/),cep=cm?cm[1]+cm[2]:"";
+  if(cm)end=end.replace(cm[0],"").replace(/[,\s-]+$/,"").trim();
+  var cid=(end.match(/contagem|ibirit[\u00e9e]|m[\u00e1a]rio campos|sarzedo|esmeraldas|igarap[\u00e9e]|juatuba|belo horizonte/i)||["Betim"])[0];
+  var rua=end.split(",")[0].replace(/\s+\d+\S*$/,"").trim(),nm=(end.replace(rua,"").match(/\b(\d{1,5})\b/)||[])[1]||"";
+  var enc=encodeURIComponent,base="https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&",uf="&state=Minas%20Gerais";
+  var hit=async function(qs){try{var r=await fetch(base+qs),j=await r.json();return j&&j[0]?{lat:+j[0].lat,lng:+j[0].lon}:null}catch(e){return null}};
+  var r;
+  if(rua){
+    r=await hit("street="+enc((nm?nm+" ":"")+rua)+"&city="+enc(cid)+uf);if(r)return{lat:r.lat,lng:r.lng,aprox:false};await pause(1100);
+    r=await hit("q="+enc(end+(bai?", "+bai:"")+", "+cid+", MG, Brasil"));if(r)return{lat:r.lat,lng:r.lng,aprox:false};await pause(1100)}
+  if(cep){
+    var ci=await cepInfo(cep),c=ci&&ci.location&&ci.location.coordinates;
+    if(c&&c.latitude!=null&&c.longitude!=null)return{lat:+c.latitude,lng:+c.longitude,aprox:true};
+    if(ci&&ci.street){r=await hit("q="+enc(ci.street+", "+(ci.neighborhood||bai)+", "+(ci.city||cid)+", MG, Brasil"));if(r)return{lat:r.lat,lng:r.lng,aprox:true};await pause(1100)}}
+  if(rua){r=await hit("street="+enc(rua)+"&city="+enc(cid)+uf);if(r)return{lat:r.lat,lng:r.lng,aprox:true};await pause(1100)}
+  if(bai){r=await hit("q="+enc(bai+", "+cid+", MG, Brasil"));if(r)return{lat:r.lat,lng:r.lng,aprox:true}}
+  return null}
+async function geocodeAll(){
+  if(geoBusy||!isCoord())return;
+  var q=S.locais.filter(function(l){return !hasLL(l)&&(l.endereco||l.bairro)&&!l.geofail});
+  if(!q.length)return;
+  geoBusy=true;var ok=0,aprox=0;
+  for(var k=0;k<q.length;k++){
+    var m=$("#mapmsg")||$("#lm");if(m)m.textContent="Localizando endere\u00e7os... "+(k+1)+" de "+q.length;
+    var f=null;try{f=await geoOne(q[k])}catch(e){f=null}
+    try{await col("locais").doc(q[k].id).update(f?{lat:f.lat,lng:f.lng,aprox:f.aprox}:{geofail:true})}catch(e){}
+    if(f){ok++;if(f.aprox)aprox++}}
+  geoBusy=false;await loadAll();
+  impMsg=ok+" de "+q.length+" endere\u00e7os localizados"+(aprox?" ("+aprox+" de forma aproximada)":"")+(ok<q.length?". Para os demais use Editar na aba Locais.":".");
+  render()}
+
+function ico(n){var P={visita:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',mapa:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',locais:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',equipe:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M17 4.5a3.5 3.5 0 0 1 0 7M22 20a6 6 0 0 0-4-5.6"/>',inicio:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',busca:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',rel:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',chev:'<path d="M9 6l6 6-6 6"/>'};
+  return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[n]||"")+'</svg>'}
+function fold(t){return String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function hdr(){var a=$("#av");if(!a)return;a.hidden=!ME;if(ME)a.innerHTML=ME.foto?'<img src="'+ME.foto+'" alt="">':esc(String(ME.nome||"?").charAt(0).toUpperCase())}
+function indicar(){
+  var d={title:"Rota Patriota",text:"Rota Patriota: app para organizar cabos eleitorais, visitas e rotas no Waze. Acesse:",url:location.origin+location.pathname};
+  if(navigator.share){navigator.share(d).catch(function(){})}
+  else window.open("https://wa.me/?text="+encodeURIComponent(d.text+" "+d.url),"_blank")}
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dpr=e;var b=document.getElementById("inst");if(b)b.hidden=false});
+function redimensiona(file,cb){
+  var r=new FileReader();
+  r.onload=function(){var im=new Image();
+    im.onload=function(){var m=Math.min(im.width,im.height),c=document.createElement("canvas");c.width=c.height=160;
+      c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,160,160);cb(c.toDataURL("image/jpeg",.8))};
+    im.onerror=function(){toast("N\u00e3o consegui ler a imagem")};im.src=r.result};
+  r.readAsDataURL(file)}
+
+function painel(){
+  var h=hoje(),hj=per==="hoje",vs=hj?S.visitas.filter(function(v){return v.data===h}):S.visitas;
+  var meta=sum(S.cabos,"meta"),feito=sum(vs,"contatos"),pct=hj&&meta?Math.min(100,Math.round(feito/meta*100)):0;
+  var fav=sum(vs,"fav"),ind=sum(vs,"ind"),con=sum(vs,"con");
+  var o='<h1>Ol\u00e1, '+esc(String(ME.nome||"").split(" ")[0])+'</h1>';
+  o+='<div class="seg"><button data-per="hoje" aria-pressed="'+hj+'">Hoje</button><button data-per="total" aria-pressed="'+!hj+'">Total</button></div>';
+  o+='<div class="search"><button class="sb" data-go="locais" data-focus="1">'+ico("busca")+'<span>Buscar local ou endere\u00e7o</span></button><button class="pill" data-go="registrar">Visita</button></div>';
+  var rec=S.visitas.slice().reverse().slice(0,3);
+  if(rec.length)o+='<div class="list">'+rec.map(function(v){var c=S.cabos.find(function(x){return x.id===v.cabo});
+    return '<button class="row2" data-go="registrar"><span class="sq">'+ico("rel")+'</span><span class="t"><b>'+esc(c?c.nome:"Cabo removido")+'</b><span>'+esc(v.bairro||"Sem bairro")+' \u00b7 '+v.contatos+' contatos</span></span>'+ico("chev")+'</button>'}).join("")+'</div>';
+  o+='<h2>Atalhos</h2><div class="circ">'+[["registrar","Visita","visita"],["mapa","Mapa","mapa"],["locais","Locais","locais"],["equipe","Equipe","equipe"]].map(function(a){return '<button data-go="'+a[0]+'"><i>'+ico(a[2])+'</i>'+a[1]+'</button>'}).join("")+'</div>';
+  o+='<h2>Resultado da equipe</h2><div class="scroller">'+
+   '<div class="card2" style="background:linear-gradient(135deg,#006b2b,#009c3b)"><div>Contatos '+(hj?"hoje":"no total")+'</div><div><div class="n" style="color:#ffdf00">'+feito+'</div>'+(hj?'<div>de '+meta+' da meta</div><div class="bar"><i style="width:'+pct+'%"></i></div>':'<div>em '+vs.length+' visitas</div>')+'</div></div>'+
+   '<div class="card2" style="background:linear-gradient(135deg,#00205f,#1d4fbf)"><div>Favor\u00e1veis</div><div><div class="n">'+fav+'</div><div>'+(feito?Math.round(fav/feito*100):0)+'% dos contatos</div></div></div>'+
+   '<div class="card2" style="background:#ffdf00;color:#002776"><div>Indecisos</div><div><div class="n">'+ind+'</div><div>'+con+' contr\u00e1rios</div></div></div></div>';
+  if(!S.cabos.length)return o+'<h2>Comece pela equipe</h2><div class="empty">Nenhum cabo cadastrado ainda.<br><button class="btn alt coord-only" id="goeq">Cadastrar o primeiro cabo</button></div>';
+  o+='<h2>Ranking '+(hj?"de hoje":"geral")+'</h2>';
+  var rk=S.cabos.map(function(c){var f=sum(vs.filter(function(v){return v.cabo===c.id}),"contatos"),alvo=hj?c.meta:0;return{c:c,f:f,p:alvo?Math.min(100,Math.round(f/alvo*100)):0}}).sort(function(a,b){return b.f-a.f});
+  o+=rk.map(function(r,i){return '<div class="item"><div class="top"><strong>'+(i+1)+'. '+esc(r.c.nome)+'</strong><span>'+r.f+(hj?' / '+r.c.meta:'')+'</span></div><div class="meta">'+esc(r.c.bairro)+'</div>'+(hj?'<div class="bar"><i style="width:'+r.p+'%"></i></div>':'')+'</div>'}).join("");
+  var bm={};S.visitas.forEach(function(v){var b=v.bairro||"Sem bairro";bm[b]=bm[b]||{c:0,f:0};bm[b].c+=+v.contatos||0;bm[b].f+=+v.fav||0});
+  var bl=Object.keys(bm).sort(function(a,b){return bm[b].c-bm[a].c}),mx=bl.length?bm[bl[0]].c:1;
+  o+='<h2>Cobertura por bairro</h2>';
+  o+=bl.length?bl.map(function(b){return '<div class="item"><div class="top"><strong>'+esc(b)+'</strong><span>'+bm[b].c+' contatos</span></div><div class="meta">'+bm[b].f+' favor\u00e1veis</div><div class="bar"><i style="width:'+Math.round(bm[b].c/mx*100)+'%"></i></div></div>'}).join(""):'<div class="empty">Registre a primeira visita para ver a cobertura.</div>';
+  return o}
+
+function rodape(){
+  var ini=esc(String(ME.nome||"?").charAt(0).toUpperCase()),av=ME.foto?'<img src="'+ME.foto+'" alt="">':ini;
+  var h='<h2>Minha conta</h2><div class="item"><div class="prof"><span class="av big">'+av+'</span><div><b>'+esc(ME.nome)+'</b><div class="meta">'+esc(ME.email)+' \u00b7 '+esc(ME.papel)+'</div></div></div>'+
+   '<label for="pnome">Meu nome</label><input id="pnome" value="'+esc(ME.nome)+'" maxlength="60"><button class="btn alt" id="pn">Salvar nome</button>'+
+   '<label for="pf">Foto de perfil</label><input id="pf" type="file" accept="image/*">'+
+   '<button class="btn alt" id="shr2">Indicar o app</button><button class="btn alt" id="inst" hidden>Instalar no celular</button>'+
+   '<div class="meta" style="margin-top:8px">No iPhone: toque em Compartilhar e depois em Adicionar \u00e0 Tela de In\u00edcio.</div><button class="link" id="out">Sair</button></div>';
+  if(isCoord())h+='<h2>Acessos</h2>'+(S.acessos||[]).map(function(a){
+    var b=a.id===ME.id?'<div class="meta">Voc\u00ea</div>':
+     (a.papel!=="cabo"?'<button class="link" style="color:var(--teal)" data-pap="cabo" data-uid="'+a.id+'">Liberar como cabo</button> &nbsp; ':'')+
+     (a.papel!=="coordenador"?'<button class="link" style="color:var(--blue)" data-pap="coordenador" data-uid="'+a.id+'">Tornar coordenador</button> &nbsp; ':'')+
+     (a.papel!=="pendente"?'<button class="link" data-pap="pendente" data-uid="'+a.id+'">Bloquear</button>':'');
+    var nm=a.nome||a.email;
+    return '<div class="item"><div class="top"><span style="display:flex;align-items:center;gap:10px;min-width:0"><span class="av sm">'+(a.foto?'<img src="'+a.foto+'" alt="">':esc(String(nm).charAt(0).toUpperCase()))+'</span><span style="min-width:0"><strong>'+esc(nm)+'</strong><div class="meta">'+esc(a.email)+'</div></span></span><span class="tag">'+esc(a.papel)+'</span></div>'+b+'</div>'}).join("");
+  return h}
+
+function editLocal(id){
+  var l=S.locais.find(function(x){return x.id===id});if(!l)return;
+  var ov=document.createElement("div");ov.className="ov";
+  var opt=function(arr,v){return arr.map(function(t){return '<option'+(t===v?' selected':'')+'>'+esc(t)+'</option>'}).join("")};
+  ov.innerHTML='<div class="sheet" role="dialog" aria-label="Editar local"><h2 style="margin-top:0">Editar local</h2>'+
+   '<label for="e_n">Nome</label><input id="e_n" value="'+esc(l.nome)+'">'+
+   '<label for="e_t">Tipo</label><select id="e_t">'+opt(Object.keys(TIPOS),l.tipo)+'</select>'+
+   '<label for="e_r">Regional</label><select id="e_r"><option value="">Autom\u00e1tica (pelo bairro ou coordenadas)</option>'+opt(REGS.map(function(r){return r[0]}),l.regional)+'</select>'+
+   '<label for="e_b">Bairro</label><input id="e_b" value="'+esc(l.bairro)+'">'+
+   '<label for="e_e">Endere\u00e7o</label><input id="e_e" value="'+esc(l.endereco)+'">'+
+   '<label for="e_c">Coordenadas (latitude, longitude)</label><input id="e_c" value="'+(hasLL(l)?l.lat+", "+l.lng:"")+'"><div class="meta">Se mudar o endere\u00e7o, deixe as coordenadas como est\u00e3o: o app localiza de novo sozinho.</div>'+
+   '<label for="e_k">Contato</label><input id="e_k" value="'+esc(l.contato)+'">'+
+   '<label for="e_o">Observa\u00e7\u00f5es</label><textarea id="e_o" rows="2">'+esc(l.obs)+'</textarea>'+
+   '<button class="btn" id="es">Salvar altera\u00e7\u00f5es</button><button class="btn alt" id="ec">Cancelar</button></div>';
+  document.body.appendChild(ov);
+  var q=function(i){return document.getElementById(i)},fecha=function(){ov.remove()};
+  ov.onclick=function(e){if(e.target===ov)fecha()};q("ec").onclick=fecha;
+  q("es").onclick=async function(){
+    var nome=q("e_n").value.trim();if(!nome){toast("Informe o nome do local");return}
+    var d={nome:nome,tipo:q("e_t").value,regional:q("e_r").value,bairro:q("e_b").value.trim(),endereco:q("e_e").value.trim(),contato:q("e_k").value.trim(),obs:q("e_o").value.trim()};
+    var cs=q("e_c").value.trim(),orig=hasLL(l)?l.lat+", "+l.lng:"";
+    if(cs!==orig){
+      if(cs){var ll=parseLL(cs);if(!ll){toast("Coordenadas inv\u00e1lidas");return}d.lat=ll[0];d.lng=ll[1]}else{d.lat=null;d.lng=null}
+      d.aprox=false;d.geofail=false}
+    else if(d.endereco!==(l.endereco||"")||d.bairro!==(l.bairro||"")){d.lat=null;d.lng=null;d.aprox=false;d.geofail=false}
+    var ok=await dbDo(col("locais").doc(id).update(d),"Local atualizado");
+    if(ok){fecha();geocodeAll()}}}
+
+async function boot(){
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+  $("#shr").onclick=indicar;$("#av").onclick=function(){if(ME){tab="equipe";render();scrollTo(0,0)}};
+  if(!window.firebase||CFG.apiKey.indexOf("COLE")===0){
+    document.querySelector("nav").hidden=true;
+    $("#app").innerHTML='<h1>Falta configurar</h1><p class="sub">Abra o arquivo index.html e preencha a configura\u00e7\u00e3o do Firebase no come\u00e7o do script (veja o passo a passo).</p>';return}
+  firebase.initializeApp(CFG);fa=firebase.auth();db=firebase.firestore();
+  await new Promise(function(res){var un=fa.onAuthStateChanged(function(){un();res()})});
+  try{await loadMe();await loadAll()}catch(e){toast(errMsg(e))}
+  render()}
+
+function render(){
+  var nv=document.querySelector("nav");hdr();
+  if(!ME||(ME.papel!=="coordenador"&&ME.papel!=="cabo")){nv.hidden=true;return gate()}
+  nv.hidden=false;document.body.classList.toggle("cabo",!isCoord());
+  tabs();
+  $("#app").innerHTML=tab==="painel"?painel():tab==="mapa"?mapa():tab==="locais"?locais():tab==="registrar"?registrar():equipe();bind2();
+  bind();
+}
+
+boot();
+</script>
+</body>
+</html>
