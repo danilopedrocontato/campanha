@@ -118,6 +118,35 @@ summary.btn{list-style:none}summary.btn::-webkit-details-marker{display:none}
 .leaflet-popup .pbtn.wa{background:#25d366}.leaflet-popup .pbtn.reg{background:#008a31;color:#fff}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surf);color:var(--ink);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+body.gated .top,body.gated main,body.gated nav{display:none}
+body.gated{overflow:hidden}
+.gate{position:fixed;inset:0;z-index:5000;overflow:auto;color:#fff;background:linear-gradient(165deg,#00541f 0%,#007a30 38%,#009c3b 72%,#00b34a 100%);padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(18px + env(safe-area-inset-bottom,0px));display:flex}
+.gate::before{content:"";position:absolute;width:150vw;height:150vw;max-width:900px;max-height:900px;border-radius:50%;right:-55%;bottom:-25%;background:radial-gradient(circle at 30% 30%,rgba(255,223,0,.25),rgba(255,223,0,0) 62%);pointer-events:none}
+.gate::after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#009c3b 33.3%,#ffdf00 33.3% 66.6%,#002776 66.6%)}
+.gin{position:relative;width:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;min-height:100%}
+.gtop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gbrand{display:flex;align-items:center;gap:10px;min-width:0}
+.gbrand svg{width:52px;height:auto;flex:none;border-radius:6px}
+.gbrand img.gl{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 2px #ffdf00}
+.gbrand>div{min-width:0}.gbrand b{display:block;font-size:1.25rem;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.gbrand span{display:block;font-size:.82rem;opacity:.9}
+.gib{width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.gmid{margin:auto 0;padding:34px 0 10px}
+.gname{font-size:2.1rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.gwho{background:none;border:0;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;font:inherit;padding:0;cursor:pointer;text-align:left}
+.gsub{opacity:.92;margin:6px 0 18px;font-size:.98rem}
+.gate label{color:#fff;font-weight:600}
+.gate input{background:rgba(255,255,255,.96);color:#0b1f4d;border-radius:999px;padding:15px 20px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.gpw{position:relative}.gpw input{padding-right:96px}
+.gpw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:rgba(0,122,48,.12);color:#006b2b;font:700 .82rem inherit;font-family:inherit;padding:8px 12px;border-radius:99px;cursor:pointer}
+.gbtn{display:block;width:100%;margin-top:20px;padding:17px;border:0;border-radius:999px;background:#fff;color:#007a30;font:800 1.05rem inherit;font-family:inherit;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.22)}
+.gbtn:disabled{opacity:.7}
+.gbtn.alt{background:rgba(255,255,255,.16);color:#fff;box-shadow:none}
+.gerr{background:rgba(0,0,0,.3);border-radius:14px;padding:10px 14px;margin-top:14px;font-size:.92rem}
+.gcard{background:rgba(255,255,255,.14);border-radius:24px;display:flex;gap:6px;padding:8px;margin-top:22px}
+.gcard button{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:none;border:2px solid transparent;border-radius:18px;color:#fff;font:600 .82rem inherit;font-family:inherit;cursor:pointer}
+.gcard button:active,.gcard button:focus-visible{border-color:#fff}
+.gate :focus-visible{outline:3px solid #ffdf00}
 </style>
 </head>
 <body>
@@ -169,7 +198,7 @@ function wazeUrl(l){return hasLL(l)?"https://waze.com/ul?ll="+l.lat+","+l.lng+"&
 function gmapsUrl(l){return "https://www.google.com/maps/dir/?api=1&destination="+(hasLL(l)?l.lat+","+l.lng:place(l))}
 function waUrl(l){var d=String(l.contato||"").replace(/\D/g,"");if(d.length<10)return "";if(d.length<=11)d="55"+d;return "https://wa.me/"+d}
 function pause(ms){return new Promise(function(r){setTimeout(r,ms)})}
-function ico(n){var P={visita:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',mapa:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',locais:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',equipe:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M17 4.5a3.5 3.5 0 0 1 0 7M22 20a6 6 0 0 0-4-5.6"/>',inicio:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',busca:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',rel:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',chev:'<path d="M9 6l6 6-6 6"/>'};
+function ico(n){var P={visita:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',mapa:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',locais:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',equipe:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M17 4.5a3.5 3.5 0 0 1 0 7M22 20a6 6 0 0 0-4-5.6"/>',inicio:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',busca:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',rel:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',chev:'<path d="M9 6l6 6-6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M19 8v6M16 11h6"/>',chave:'<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/>',share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>'};
   return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[n]||"")+'</svg>'}
 function imgData(file,max,q,sq,cb){
   var r=new FileReader();
@@ -199,7 +228,7 @@ async function loadMe(){
   var u=fa.currentUser;if(!u){ME=null;return}
   var d=await col("perfis").doc(u.uid).get();
   if(!d.exists){
-    var base={email:u.email,nome:String(u.email).split("@")[0],criado_em:Date.now()},first=false;
+    var base={email:u.email,nome:nomeNovo||String(u.email).split("@")[0],criado_em:Date.now()},first=false;
     try{var c=await col("config").doc("admin").get();
       if(!c.exists){var b=db.batch();b.set(col("config").doc("admin"),{uid:u.uid});b.set(col("perfis").doc(u.uid),Object.assign({papel:"coordenador"},base));await b.commit();first=true}}catch(e){}
     if(!first)await col("perfis").doc(u.uid).set(Object.assign({papel:"pendente"},base));
@@ -212,7 +241,7 @@ async function loadAll(){
   catch(e){toast("Erro ao carregar os dados: "+errMsg(e));return false}
   var ns={locais:r[0].sort(byNome),visitas:r[1].sort(byTime),materiais:r[2].sort(function(a,b){return byTime(b,a)}),acessos:r[3].sort(byTime)};
   var nc=r[4].exists?r[4].data():{},s2=JSON.stringify([ns,nc]),ch=s2!==sig;
-  sig=s2;S=ns;C=nc;return ch}
+  sig=s2;S=ns;C=nc;try{localStorage.setItem("campanha_cache",JSON.stringify({nome:nc.nome,numero:nc.numero,cargo:nc.cargo,partido:nc.partido,foto:nc.foto}))}catch(e){}return ch}
 async function fixAreas(){
   if(!isCoord())return false;
   var fx=S.locais.filter(function(l){return !l.area});if(!fx.length)return false;
@@ -223,9 +252,9 @@ async function fixAreas(){
 async function dbDo(p,msg){
   try{await p}catch(e){toast("Erro: "+errMsg(e));return false}
   await loadAll();if(msg)toast(msg);render();return true}
-function sair(){return fa.signOut().then(function(){ME=null;C={};sig="";S={locais:[],visitas:[],materiais:[],acessos:[]};render()})}
+function sair(){return fa.signOut().then(function(){gmode="login";gtroca=false;ME=null;C={};sig="";S={locais:[],visitas:[],materiais:[],acessos:[]};render()})}
 function indicar(){
-  var nm=C.nome||"Campanha",d={title:nm,text:nm+": app da campanha para visitas, mapa e materiais. Acesse:",url:location.origin+location.pathname};
+  var nm=C.nome||lerCache().nome||"Campanha",d={title:nm,text:nm+": app da campanha para visitas, mapa e materiais. Acesse:",url:location.origin+location.pathname};
   if(navigator.share){navigator.share(d).catch(function(){})}else window.open("https://wa.me/?text="+encodeURIComponent(d.text+" "+d.url),"_blank")}
 async function compartilhar(m){
   var txt=m.titulo+(m.descricao?"\n"+m.descricao:"")+(m.url?"\n"+m.url:"");
@@ -247,15 +276,48 @@ function tabs(){
   var T=[["painel","Início","inicio"],["mapa","Mapa","mapa"],["visitas","Visitas","visita"],["locais","Locais","locais"],["equipe",isCoord()?"Equipe":"Conta","equipe"]];
   $("#tabs").innerHTML=T.map(function(t){return '<button role="tab" aria-selected="'+(tab===t[0])+'" data-t="'+t[0]+'">'+ico(t[2])+'<span>'+t[1]+'</span></button>'}).join("");
   $("#tabs").onclick=function(e){var b=e.target.closest("button");if(b){tab=b.dataset.t;render();scrollTo(0,0);loadAll().then(function(ch){if(ch)render()})}}}
+var gmode="login",gtroca=false,nomeNovo="";
+function lerCache(){try{return JSON.parse(localStorage.getItem("campanha_cache"))||{}}catch(e){return {}}}
+function ultimo(){try{return JSON.parse(localStorage.getItem("campanha_ultimo"))}catch(e){return null}}
+function mascara(e){var p=String(e).split("@");return p[0].slice(0,2)+"***@"+(p[1]||"")}
+async function entrar(){
+  try{await loadMe();await loadAll();await fixAreas()}catch(e){toast(errMsg(e));return}
+  if(ME)try{localStorage.setItem("campanha_ultimo",JSON.stringify({email:ME.email,nome:ME.nome}))}catch(e){}
+  gmode="login";gtroca=false;render()}
 function gate(){
-  var q=function(id){return document.getElementById(id)};
-  $("#app").innerHTML=ME?'<h1>Aguardando liberação</h1><p class="sub">Sua conta ('+esc(ME.email)+') foi criada. O coordenador precisa liberar o acesso. Depois, toque em Atualizar.</p><button class="btn" id="re">Atualizar</button><button class="btn alt" id="out">Sair</button>':
-   '<h1>Bem-vindo</h1><p class="sub">Entre com seu e-mail e senha</p><label for="em">E-mail</label><input id="em" type="email" autocomplete="username"><label for="pw">Senha</label><input id="pw" type="password" autocomplete="current-password"><button class="btn" id="in">Entrar</button><button class="btn alt" id="up">Criar conta</button><div class="meta" id="gm" role="status" style="margin-top:10px"></div>';
-  var go=async function(){try{await loadMe();await loadAll();await fixAreas()}catch(e){toast(errMsg(e));return}render()};
-  if(q("in"))q("in").onclick=async function(){try{await fa.signInWithEmailAndPassword(q("em").value.trim(),q("pw").value)}catch(e){q("gm").textContent="Não foi possível entrar: "+errMsg(e);return}go()};
-  if(q("up"))q("up").onclick=async function(){try{await fa.createUserWithEmailAndPassword(q("em").value.trim(),q("pw").value)}catch(e){q("gm").textContent="Não foi possível criar a conta: "+errMsg(e);return}go()};
-  if(q("re"))q("re").onclick=go;
-  if(q("out"))q("out").onclick=sair}
+  document.body.classList.add("gated");
+  var g=document.getElementById("gate");if(!g){g=document.createElement("div");g.id="gate";g.className="gate";document.body.appendChild(g)}
+  var cc=lerCache(),sb=[cc.numero?"Nº "+cc.numero:"",cc.cargo,cc.partido].filter(Boolean).join(" · "),u=ultimo(),salvo=!!(u&&u.email)&&!gtroca&&gmode==="login";
+  var top='<div class="gtop"><div class="gbrand">'+(cc.foto?'<img class="gl" src="'+cc.foto+'" alt="">':FLAG)+'<div><b>'+esc(cc.nome||"Campanha")+'</b>'+(sb?'<span>'+esc(sb)+'</span>':'')+'</div></div><button class="gib" id="g_sh" type="button" aria-label="Indicar o app">'+ico("share")+'</button></div>';
+  var mid,card="",cri=gmode==="criar";
+  if(ME){
+    mid='<div class="gname">Aguardando liberação</div><div class="gsub">Sua conta ('+esc(ME.email)+') foi criada. O coordenador precisa liberar o acesso. Depois, toque em Atualizar.</div><button class="gbtn" id="g_re" type="button">Atualizar</button><button class="gbtn alt" id="g_out" type="button">Sair</button>'}
+  else{
+    var head=cri?'<div class="gname">Criar conta</div><div class="gsub">Depois de criar, o coordenador precisa liberar seu acesso.</div>':
+      salvo?'<button class="gwho" id="g_tr" type="button" aria-label="Trocar de usuário"><span class="gname">Olá, '+esc(String(u.nome||"").split(" ")[0])+'</span>'+ico("down")+'</button><div class="gsub">'+esc(mascara(u.email))+'</div>':
+      '<div class="gname">Bem-vindo</div><div class="gsub">Entre com seu e-mail e senha</div>';
+    mid='<form id="gf" autocomplete="on">'+head+
+      (cri?'<label for="gn">Seu nome</label><input id="gn" autocomplete="name" maxlength="60">':'')+
+      (salvo?'<input id="em" type="email" value="'+esc(u.email)+'" autocomplete="username" hidden>':'<label for="em">E-mail</label><input id="em" type="email" autocomplete="username" inputmode="email">')+
+      '<label for="pw">Senha</label><div class="gpw"><input id="pw" type="password" autocomplete="'+(cri?'new-password':'current-password')+'"><button type="button" id="g_eye" aria-label="Mostrar senha">Mostrar</button></div>'+
+      '<div class="gerr" id="gm" role="alert" hidden></div><button class="gbtn" id="g_go" type="submit">'+(cri?'criar conta':'acessar conta')+'</button></form>';
+    card='<div class="gcard"><button id="g_alt" type="button">'+ico("userplus")+'<span>'+(cri?'Já tenho conta':'Criar conta')+'</span></button><button id="g_rs" type="button">'+ico("chave")+'<span>Esqueci a senha</span></button><button id="g_sh2" type="button">'+ico("share")+'<span>Indicar</span></button></div>'}
+  g.innerHTML='<div class="gin">'+top+'<div class="gmid">'+mid+'</div>'+card+'</div>';
+  var q=function(id){return document.getElementById(id)},erro=function(t){var m=q("gm");if(m){m.textContent=t;m.hidden=!t}};
+  if(q("g_sh"))q("g_sh").onclick=indicar;if(q("g_sh2"))q("g_sh2").onclick=indicar;
+  if(q("g_tr"))q("g_tr").onclick=function(){gtroca=true;gate()};
+  if(q("g_alt"))q("g_alt").onclick=function(){gmode=gmode==="criar"?"login":"criar";gtroca=false;gate()};
+  if(q("g_eye"))q("g_eye").onclick=function(){var p=q("pw"),v=p.type==="password";p.type=v?"text":"password";this.textContent=v?"Ocultar":"Mostrar"};
+  if(q("g_rs"))q("g_rs").onclick=async function(){var em=q("em").value.trim();if(!em){erro("Digite seu e-mail e toque em Esqueci a senha.");return}
+    try{await fa.sendPasswordResetEmail(em);erro("Enviamos um e-mail para "+em+" com o link para criar uma nova senha.")}catch(x){erro("Não foi possível enviar: "+errMsg(x))}};
+  if(q("g_re"))q("g_re").onclick=entrar;if(q("g_out"))q("g_out").onclick=sair;
+  if(q("gf"))q("gf").onsubmit=async function(e){e.preventDefault();
+    var em=q("em").value.trim(),pw=q("pw").value,b=q("g_go"),rot=b.textContent;
+    if(!em||!pw){erro("Informe e-mail e senha");return}
+    erro("");b.disabled=true;b.textContent=cri?"Criando...":"Entrando...";
+    try{if(cri){nomeNovo=(q("gn").value||"").trim();await fa.createUserWithEmailAndPassword(em,pw)}else await fa.signInWithEmailAndPassword(em,pw)}
+    catch(x){erro((cri?"Não foi possível criar a conta: ":"Não foi possível entrar: ")+errMsg(x));b.disabled=false;b.textContent=rot;return}
+    entrar()}}
 /* ---------- filtros e contagens ---------- */
 function opts(arr,v,todos){return '<option value="">'+todos+'</option>'+arr.map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join("")}
 function filtros(){
@@ -577,6 +639,7 @@ function bindAll(){
 function render(){
   var nv=document.querySelector("nav");hdr();
   if(!liberado()){nv.hidden=true;return gate()}
+  document.body.classList.remove("gated");var gg=document.getElementById("gate");if(gg)gg.remove();
   nv.hidden=false;document.body.classList.toggle("cabo",!isCoord());tabs();
   $("#app").innerHTML=tab==="painel"?viewPainel():tab==="mapa"?viewMapa():tab==="visitas"?viewVisitas():tab==="locais"?viewLocais():viewEquipe();
   bindAll()}
@@ -586,6 +649,8 @@ async function boot(){
   if(!window.firebase){document.querySelector("nav").hidden=true;$("#app").innerHTML='<h1>Sem conexão</h1><p class="sub">Não consegui carregar o Firebase. Verifique a internet e recarregue.</p>';return}
   firebase.initializeApp(CFG);fa=firebase.auth();db=firebase.firestore();
   await new Promise(function(res){var un=fa.onAuthStateChanged(function(){un();res()})});
+  if(fa.currentUser){try{await fa.signOut()}catch(e){}}
+  try{await fa.setPersistence(firebase.auth.Auth.Persistence.NONE)}catch(e){}
   try{await loadMe();await loadAll();await fixAreas()}catch(e){toast(errMsg(e))}
   render()}
 boot();
