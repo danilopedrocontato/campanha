@@ -161,11 +161,6 @@ main{padding-top:14px}
 .bd.ne{background:#e5e7eb;color:#374151}.bd.nc{background:#e5e7eb;color:#7f1d1d}
 .gkeep{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-weight:600;font-size:.9rem}
 .gkeep input{width:20px;height:20px;flex:none;box-shadow:none}
-body[data-tab="equipe"] .top{background:var(--surf);color:var(--ink);box-shadow:none;border-radius:0;padding:18px 16px 12px}
-body[data-tab="equipe"] .top::after{display:none}
-body[data-tab="equipe"] .brand b{color:var(--ink)}
-body[data-tab="equipe"] .brand span{color:var(--mut)}
-body[data-tab="equipe"] .top .ib{background:var(--chip);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -609,7 +604,7 @@ function viewEquipe(){
    '<label for="pnome">Meu nome</label><input id="pnome" value="'+esc(ME.nome)+'" maxlength="60"><button class="btn alt" id="pn">Salvar nome</button>'+
    '<label for="pf">Foto de perfil</label><input id="pf" type="file" accept="image/*">'+
    '<button class="btn alt" id="shr2">Indicar o app</button><button class="btn alt" id="inst" hidden>Instalar no celular</button>'+
-   '<div class="meta" style="margin-top:8px">No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início.</div><button class="link" id="out">Sair</button></div>';
+   '<div class="meta" style="margin-top:8px">No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início.</div><div class="meta" style="margin-top:6px">Versão '+VERSAO+'</div><button class="link" id="out">Sair</button></div>';
   return o}
 function lerForm(q,l){
   var cs=q("lc").value.trim(),ll=cs?parseLL(cs):null;
@@ -708,7 +703,12 @@ function bindAll(){
     imgData(f,160,.8,true,function(d){dbDo(col("perfis").doc(ME.id).update({foto:d}),"Foto atualizada").then(async function(ok){if(ok){await loadMe();render()}})})};
   if(q("out"))q("out").onclick=sair}
 async function boot(){
-  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+  if("serviceWorker" in navigator){
+    var tinha=!!navigator.serviceWorker.controller,rec=false;
+    navigator.serviceWorker.addEventListener("controllerchange",function(){if(tinha&&!rec){rec=true;location.reload()}});
+    navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(reg){
+      reg.update().catch(function(){});
+      document.addEventListener("visibilitychange",function(){if(!document.hidden)reg.update().catch(function(){})})}).catch(function(){})}
   $("#shr").onclick=indicar;$("#av").onclick=function(){if(ME){tab="equipe";render();scrollTo(0,0)}};
   if(!window.firebase){document.querySelector("nav").hidden=true;$("#app").innerHTML='<h1>Sem conexão</h1><p class="sub">Não consegui carregar o Firebase. Verifique a internet e recarregue.</p>';return}
   var keep=false;try{keep=localStorage.getItem("campanha_manter")==="1"}catch(e){}
@@ -759,6 +759,7 @@ function exportar(qual){
   else{
     var vr=[["Data","Eleitor","Bairro","Cidade","Regional","Resultado","Registrado por","Observações"]].concat(S.visitas.map(function(v){return [fmtData(v.data),v.eleitorNome||"",v.bairro||"",v.cidade||"",v.regional||"",v.resultado?(RES[v.resultado]||v.resultado):"",v.porNome||"",v.obs||""]}));
     salvarPlanilha("visitas-"+d+".xlsx",[["Visitas",vr,[12,28,20,16,14,22,22,40]]])}}
+var VERSAO="2026-10-15.4";
 boot();
 </script>
 </body>
