@@ -147,6 +147,20 @@ body.gated{overflow:hidden}
 .gcard button{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:none;border:2px solid transparent;border-radius:18px;color:#fff;font:600 .82rem inherit;font-family:inherit;cursor:pointer}
 .gcard button:active,.gcard button:focus-visible{border-color:#fff}
 .gate :focus-visible{outline:3px solid #ffdf00}
+.top{background:linear-gradient(135deg,#00541f 0%,#007a30 45%,#00a844 100%);color:#fff;padding:18px 16px 22px;border-radius:0 0 28px 28px;position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(0,100,40,.28)}
+.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#009c3b 33.3%,#ffdf00 33.3% 66.6%,#002776 66.6%)}
+.top::after{content:"";position:absolute;right:-70px;top:-90px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(255,223,0,.30),rgba(255,223,0,0) 65%);pointer-events:none}
+.top .in{position:relative;z-index:1}
+.stripe{display:none}
+.brand b{color:#fff}.brand span{color:rgba(255,255,255,.9)}
+.top .ib{background:rgba(255,255,255,.2);color:#fff}
+.top .av{box-shadow:0 0 0 2px #ffdf00}
+main{padding-top:14px}
+.warn{margin-top:12px;padding:12px 14px;border-radius:14px;background:#fff3c4;color:#5c4a00;font-size:.92rem;font-weight:600}
+.warnt{color:#b45309;font-weight:700}
+.bd.ne{background:#e5e7eb;color:#374151}.bd.nc{background:#e5e7eb;color:#7f1d1d}
+.gkeep{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-weight:600;font-size:.9rem}
+.gkeep input{width:20px;height:20px;flex:none;box-shadow:none}
 </style>
 </head>
 <body>
@@ -157,7 +171,7 @@ body.gated{overflow:hidden}
 var CFG={apiKey:"AIzaSyBUppxd63rbKsxgl-rYDM3rxNZj8eiNTk0",authDomain:"rota-patriota.firebaseapp.com",projectId:"rota-patriota",appId:"1:1048214012050:web:ebb613a9679473c36c264b"};
 var fa=null,db=null,ME=null,C={},S={locais:[],visitas:[],materiais:[],acessos:[]},sig="";
 var tab="painel",sub="visitar",per="hoje",impMsg="",selLoc=null,preEleitor="",focusBusca=false,dpr=null,LM=null,geoBusy=false;
-var F={uf:"",cid:"",reg:"",bai:""};
+var F={uf:"",cid:"",reg:"",bai:""},lastLoad=0,offlineOn=false,soMeus=null,pos=null;
 var $=function(s){return document.querySelector(s)};
 var esc=function(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var hoje=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
@@ -166,7 +180,7 @@ var FLAG='<svg viewBox="0 0 64 45" role="img" aria-label="Bandeira do Brasil"><r
 var UFS={AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins"};
 var CARGOS=["Presidente","Vice-presidente","Governador","Vice-governador","Senador","Deputado Federal","Deputado Estadual","Deputado Distrital","Prefeito","Vice-prefeito","Vereador"];
 var TIPOS={"Eleitor a visitar":"#d62828","Comitê":"#ffdf00","Ponto de encontro":"#0f7b6c","Liderança":"#2b59c3","Evento":"#c2410c","Outro":"#8a94a6"};
-var RES={fav:"Favorável",ind:"Indeciso",con:"Contrário"};
+var RES={fav:"Favorável",ind:"Indeciso",con:"Contrário",ne:"Não encontrei",nc:"Não contatar"};
 var REGS=[["Alterosas",-19.995,-44.235],["Centro",-19.968,-44.198],["Citrolândia",-20.045,-44.215],["Icaivera",-19.960,-44.235],["Imbiruçu",-19.945,-44.255],["Norte",-19.940,-44.200],["Petrovale",-20.010,-44.190],["PTB",-19.995,-44.170],["Teresópolis",-19.982,-44.214],["Vianópolis",-19.950,-44.165]];
 var KW={"Alterosas":["alterosa"],"Centro":["=centro"],"Citrolândia":["citrolandia"],"Icaivera":["icaivera"],"Imbiruçu":["imbirucu","jardimcalifornia","laranjeiras","jardimsantacruz","celsoalvespedrosa","saocristovao","pintos"],"Norte":["belavista","tiradentes","reservadamata","senhoradasgracas","viladasflores","granroyalle","santalucia","angola"],"Petrovale":["petrovale","joaoleite","jardimmontreal","jardimnazareno","recantodalagoa","donagraziela","estanciadosereno"],"PTB":["ptb","guanabara","camposeliseos","palmeiras","donaizabel","paulocamilo","vilaverde","pintados","presidentekennedy","granjadascandeias"],"Teresópolis":["teresopolis"],"Vianópolis":["vianopolis"]};
 
@@ -178,6 +192,9 @@ function num(v){var n=parseFloat(String(v==null?"":v).replace(",","."));return i
 function okLL(a,b){return a!=null&&b!=null&&Math.abs(a)<=90&&Math.abs(b)<=180&&!(a===0&&b===0)}
 function parseLL(s){var m=String(s||"").match(/-?\d+(?:[.,]\d+)?/g);if(!m||m.length<2)return null;var a=num(m[0]),b=num(m[1]);return okLL(a,b)?[a,b]:null}
 function hasLL(l){return typeof l.lat==="number"&&typeof l.lng==="number"}
+function imgOk(s){return typeof s==="string"&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(s)}
+function imgTag(s,c){return imgOk(s)?'<img'+(c?' class="'+c+'"':'')+' src="'+s+'" alt="">':""}
+function chaveDup(l){var f=String(l.contato||"").replace(/\D/g,"");return nrm(l.nome)+"|"+(f.length>=8?f:nrm(l.endereco))}
 function byNome(a,b){return String(a.nome||"").localeCompare(String(b.nome||""))}
 function byTime(a,b){return (a.criado_em||0)-(b.criado_em||0)}
 function fmtData(s){return String(s||"").split("-").reverse().join("/")}
@@ -194,8 +211,8 @@ function completa(d){
   d.regional=d.regional||regDe(d)||"";d.area=d.estado+"|"+d.cidade+"|"+d.regional;return d}
 function labelArea(k){var p=String(k).split("|");return (p[1]||"?")+(p[2]?" · "+p[2]:" (cidade toda)")+" ("+(p[0]||"")+")"}
 function place(l){return encodeURIComponent([l.endereco||l.nome,l.bairro,l.cidade,l.estado].filter(Boolean).join(", "))}
-function wazeUrl(l){return hasLL(l)?"https://waze.com/ul?ll="+l.lat+","+l.lng+"&navigate=yes":"https://waze.com/ul?q="+place(l)+"&navigate=yes"}
-function gmapsUrl(l){return "https://www.google.com/maps/dir/?api=1&destination="+(hasLL(l)?l.lat+","+l.lng:place(l))}
+function wazeUrl(l){return hasLL(l)&&!l.aprox?"https://waze.com/ul?ll="+l.lat+","+l.lng+"&navigate=yes":"https://waze.com/ul?q="+place(l)+"&navigate=yes"}
+function gmapsUrl(l){return "https://www.google.com/maps/dir/?api=1&destination="+(hasLL(l)&&!l.aprox?l.lat+","+l.lng:place(l))}
 function waUrl(l){var d=String(l.contato||"").replace(/\D/g,"");if(d.length<10)return "";if(d.length<=11)d="55"+d;return "https://wa.me/"+d}
 function pause(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function ico(n){var P={visita:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',mapa:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',locais:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',equipe:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M17 4.5a3.5 3.5 0 0 1 0 7M22 20a6 6 0 0 0-4-5.6"/>',inicio:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',busca:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',rel:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',chev:'<path d="M9 6l6 6-6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0M19 8v6M16 11h6"/>',chave:'<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/>',share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>'};
@@ -241,7 +258,7 @@ async function loadAll(){
   catch(e){toast("Erro ao carregar os dados: "+errMsg(e));return false}
   var ns={locais:r[0].sort(byNome),visitas:r[1].sort(byTime),materiais:r[2].sort(function(a,b){return byTime(b,a)}),acessos:r[3].sort(byTime)};
   var nc=r[4].exists?r[4].data():{},s2=JSON.stringify([ns,nc]),ch=s2!==sig;
-  sig=s2;S=ns;C=nc;try{localStorage.setItem("campanha_cache",JSON.stringify({nome:nc.nome,numero:nc.numero,cargo:nc.cargo,partido:nc.partido,foto:nc.foto}))}catch(e){}return ch}
+  lastLoad=Date.now();sig=s2;S=ns;C=nc;try{localStorage.setItem("campanha_cache",JSON.stringify({nome:nc.nome,numero:nc.numero,cargo:nc.cargo,partido:nc.partido,foto:nc.foto}))}catch(e){}return ch}
 async function fixAreas(){
   if(!isCoord())return false;
   var fx=S.locais.filter(function(l){return !l.area});if(!fx.length)return false;
@@ -249,9 +266,6 @@ async function fixAreas(){
     fx.slice(i,i+400).forEach(function(l){var d=completa({estado:l.estado,cidade:l.cidade,regional:l.regional,bairro:l.bairro,lat:l.lat,lng:l.lng});b.update(col("locais").doc(l.id),{estado:d.estado,cidade:d.cidade,regional:d.regional,area:d.area})});
     try{await b.commit()}catch(e){return false}}
   await loadAll();return true}
-async function dbDo(p,msg){
-  try{await p}catch(e){toast("Erro: "+errMsg(e));return false}
-  await loadAll();if(msg)toast(msg);render();return true}
 function sair(){return fa.signOut().then(function(){gmode="login";gtroca=false;ME=null;C={};sig="";S={locais:[],visitas:[],materiais:[],acessos:[]};render()})}
 function indicar(){
   var nm=C.nome||lerCache().nome||"Campanha",d={title:nm,text:nm+": app da campanha para visitas, mapa e materiais. Acesse:",url:location.origin+location.pathname};
@@ -269,13 +283,13 @@ window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dpr
 /* ---------- cabeçalho, abas, login ---------- */
 function hdr(){
   var b=$("#brand"),nome=C.nome||"Campanha",sb=[C.numero?"Nº "+C.numero:"",C.cargo,C.partido].filter(Boolean).join(" · ");
-  if(b)b.innerHTML=(C.foto?'<img class="cand" src="'+C.foto+'" alt="">':FLAG)+'<div><b>'+esc(nome)+'</b>'+(sb?'<span>'+esc(sb)+'</span>':'')+'</div>';
+  if(b)b.innerHTML=(imgOk(C.foto)?imgTag(C.foto,"cand"):FLAG)+'<div><b>'+esc(nome)+'</b>'+(sb?'<span>'+esc(sb)+'</span>':'')+'</div>';
   document.title=nome;
-  var a=$("#av");if(!a)return;a.hidden=!ME;if(ME)a.innerHTML=ME.foto?'<img src="'+ME.foto+'" alt="">':esc(String(ME.nome||"?").charAt(0).toUpperCase())}
+  var a=$("#av");if(!a)return;a.hidden=!ME;if(ME)a.innerHTML=imgOk(ME.foto)?imgTag(ME.foto):esc(String(ME.nome||"?").charAt(0).toUpperCase())}
 function tabs(){
   var T=[["painel","Início","inicio"],["mapa","Mapa","mapa"],["visitas","Visitas","visita"],["locais","Locais","locais"],["equipe",isCoord()?"Equipe":"Conta","equipe"]];
   $("#tabs").innerHTML=T.map(function(t){return '<button role="tab" aria-selected="'+(tab===t[0])+'" data-t="'+t[0]+'">'+ico(t[2])+'<span>'+t[1]+'</span></button>'}).join("");
-  $("#tabs").onclick=function(e){var b=e.target.closest("button");if(b){tab=b.dataset.t;render();scrollTo(0,0);loadAll().then(function(ch){if(ch)render()})}}}
+  $("#tabs").onclick=function(e){var b=e.target.closest("button");if(b){tab=b.dataset.t;render();scrollTo(0,0);if(Date.now()-lastLoad>60000)loadAll().then(function(ch){if(ch)render()})}}}
 var gmode="login",gtroca=false,nomeNovo="";
 function lerCache(){try{return JSON.parse(localStorage.getItem("campanha_cache"))||{}}catch(e){return {}}}
 function ultimo(){try{return JSON.parse(localStorage.getItem("campanha_ultimo"))}catch(e){return null}}
@@ -288,7 +302,7 @@ function gate(){
   document.body.classList.add("gated");
   var g=document.getElementById("gate");if(!g){g=document.createElement("div");g.id="gate";g.className="gate";document.body.appendChild(g)}
   var cc=lerCache(),sb=[cc.numero?"Nº "+cc.numero:"",cc.cargo,cc.partido].filter(Boolean).join(" · "),u=ultimo(),salvo=!!(u&&u.email)&&!gtroca&&gmode==="login";
-  var top='<div class="gtop"><div class="gbrand">'+(cc.foto?'<img class="gl" src="'+cc.foto+'" alt="">':FLAG)+'<div><b>'+esc(cc.nome||"Campanha")+'</b>'+(sb?'<span>'+esc(sb)+'</span>':'')+'</div></div><button class="gib" id="g_sh" type="button" aria-label="Indicar o app">'+ico("share")+'</button></div>';
+  var top='<div class="gtop"><div class="gbrand">'+(imgOk(cc.foto)?imgTag(cc.foto,"gl"):FLAG)+'<div><b>'+esc(cc.nome||"Campanha")+'</b>'+(sb?'<span>'+esc(sb)+'</span>':'')+'</div></div><button class="gib" id="g_sh" type="button" aria-label="Indicar o app">'+ico("share")+'</button></div>';
   var mid,card="",cri=gmode==="criar";
   if(ME){
     mid='<div class="gname">Aguardando liberação</div><div class="gsub">Sua conta ('+esc(ME.email)+') foi criada. O coordenador precisa liberar o acesso. Depois, toque em Atualizar.</div><button class="gbtn" id="g_re" type="button">Atualizar</button><button class="gbtn alt" id="g_out" type="button">Sair</button>'}
@@ -300,7 +314,7 @@ function gate(){
       (cri?'<label for="gn">Seu nome</label><input id="gn" autocomplete="name" maxlength="60">':'')+
       (salvo?'<input id="em" type="email" value="'+esc(u.email)+'" autocomplete="username" hidden>':'<label for="em">E-mail</label><input id="em" type="email" autocomplete="username" inputmode="email">')+
       '<label for="pw">Senha</label><div class="gpw"><input id="pw" type="password" autocomplete="'+(cri?'new-password':'current-password')+'"><button type="button" id="g_eye" aria-label="Mostrar senha">Mostrar</button></div>'+
-      '<div class="gerr" id="gm" role="alert" hidden></div><button class="gbtn" id="g_go" type="submit">'+(cri?'criar conta':'acessar conta')+'</button></form>';
+      (cri?'':'<label class="gkeep"><input type="checkbox" id="g_keep"> Manter conectado neste aparelho (útil sem sinal)</label>')+'<div class="gerr" id="gm" role="alert" hidden></div><button class="gbtn" id="g_go" type="submit">'+(cri?'criar conta':'acessar conta')+'</button></form>';
     card='<div class="gcard"><button id="g_alt" type="button">'+ico("userplus")+'<span>'+(cri?'Já tenho conta':'Criar conta')+'</span></button><button id="g_rs" type="button">'+ico("chave")+'<span>Esqueci a senha</span></button><button id="g_sh2" type="button">'+ico("share")+'<span>Indicar</span></button></div>'}
   g.innerHTML='<div class="gin">'+top+'<div class="gmid">'+mid+'</div>'+card+'</div>';
   var q=function(id){return document.getElementById(id)},erro=function(t){var m=q("gm");if(m){m.textContent=t;m.hidden=!t}};
@@ -314,10 +328,20 @@ function gate(){
   if(q("gf"))q("gf").onsubmit=async function(e){e.preventDefault();
     var em=q("em").value.trim(),pw=q("pw").value,b=q("g_go"),rot=b.textContent;
     if(!em||!pw){erro("Informe e-mail e senha");return}
+    if(cri&&pw.length<8){erro("A senha precisa ter pelo menos 8 caracteres");return}
+    var kp=!!(q("g_keep")&&q("g_keep").checked);
+    try{localStorage.setItem("campanha_manter",kp?"1":"0");await fa.setPersistence(kp?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.NONE)}catch(x){}
     erro("");b.disabled=true;b.textContent=cri?"Criando...":"Entrando...";
     try{if(cri){nomeNovo=(q("gn").value||"").trim();await fa.createUserWithEmailAndPassword(em,pw)}else await fa.signInWithEmailAndPassword(em,pw)}
     catch(x){erro((cri?"Não foi possível criar a conta: ":"Não foi possível entrar: ")+errMsg(x));b.disabled=false;b.textContent=rot;return}
     entrar()}}
+async function dbDo(p,msg){
+  var r;p.catch(function(){});
+  try{r=await Promise.race([p.then(function(){return "ok"}),pause(3500).then(function(){return "lento"})])}
+  catch(e){toast("Erro: "+errMsg(e));return false}
+  if(r==="lento")toast(offlineOn?"Sem sinal: salvo no aparelho. Será enviado quando a conexão voltar.":"Sem sinal. Mantenha o app aberto até a conexão voltar para enviar.");
+  else if(msg)toast(msg);
+  await loadAll();render();return true}
 /* ---------- filtros e contagens ---------- */
 function opts(arr,v,todos){return '<option value="">'+todos+'</option>'+arr.map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join("")}
 function filtros(){
@@ -327,52 +351,13 @@ function filtros(){
   var l3=l2.filter(function(l){return !F.reg||l.regional===F.reg}),b=uniq(l3.map(function(l){return l.bairro}));
   return '<div class="filtros"><select data-f="uf" aria-label="Estado">'+opts(u,F.uf,"Todos os estados")+'</select><select data-f="cid" aria-label="Cidade">'+opts(c,F.cid,"Todas as cidades")+'</select><select data-f="reg" aria-label="Regional">'+opts(r,F.reg,"Todas as regionais")+'</select><select data-f="bai" aria-label="Bairro">'+opts(b,F.bai,"Todos os bairros")+'</select></div>'}
 function passa(x){return (!F.uf||x.estado===F.uf)&&(!F.cid||x.cidade===F.cid)&&(!F.reg||x.regional===F.reg)&&(!F.bai||x.bairro===F.bai)}
-function vC(v){return v.eleitor?1:(+v.contatos||0)}
 function vR(v,k){return v.resultado?(v.resultado===k?1:0):(+v[k]||0)}
 function sv(a,k){return a.reduce(function(t,v){return t+(k==="c"?vC(v):vR(v,k))},0)}
-function jaVisit(){var s={};S.visitas.forEach(function(v){if(v.eleitor)s[v.eleitor]=v});return s}
 function isEle(l){return l.tipo==="Eleitor a visitar"}
 
 /* ---------- Início ---------- */
-function matCard(m){
-  return '<div class="mat"><div class="mimg">'+(m.imagem?'<img src="'+m.imagem+'" alt="">':'<span>'+esc(m.tipo||"Material")+'</span>')+'</div><div class="mb"><b>'+esc(m.titulo)+'</b>'+(m.descricao?'<div class="d">'+esc(m.descricao)+'</div>':'')+
-   '<div class="ac"><button class="pill" data-share="'+m.id+'">Compartilhar</button>'+(m.url?'<a class="pill" href="'+esc(m.url)+'" target="_blank" rel="noopener">Abrir</a>':'')+'<button class="link coord-only" data-delm="'+m.id+'">Remover</button></div></div></div>'}
-function viewPainel(){
-  var h=hoje(),hj=per==="hoje",vs=hj?S.visitas.filter(function(v){return v.data===h}):S.visitas;
-  var own=vs.filter(function(v){return v.criado_por===ME.id}),co=isCoord();
-  var feito=sv(co?vs:own,"c"),meta=co?S.acessos.filter(function(a){return a.papel==="cabo"||a.papel==="coordenador"}).reduce(function(t,a){return t+(a.meta||30)},0):(ME.meta||30);
-  var pct=hj&&meta?Math.min(100,Math.round(feito/meta*100)):0,fav=sv(vs,"fav"),ind=sv(vs,"ind"),con=sv(vs,"con"),tot=sv(vs,"c");
-  var o='<h1>Olá, '+esc(String(ME.nome||"").split(" ")[0])+'</h1>';
-  if(C.nome)o+='<div class="candc">'+(C.foto?'<img src="'+C.foto+'" alt="">':FLAG)+'<div>'+(C.numero?'<div class="num">'+esc(C.numero)+'</div>':'')+'<b>'+esc(C.nome)+'</b><span>'+esc([C.cargo,C.partido].filter(Boolean).join(" · "))+'</span></div></div>';
-  if(!co&&!(ME.areas||[]).length)o+='<div class="empty" style="margin-top:12px">Você ainda não tem áreas liberadas. Peça ao coordenador para liberar as regiões em que você vai atuar.</div>';
-  o+='<div class="seg"><button data-per="hoje" aria-pressed="'+hj+'">Hoje</button><button data-per="total" aria-pressed="'+!hj+'">Total</button></div>';
-  o+='<div class="search"><button class="sb" data-go="locais" data-focus="1">'+ico("busca")+'<span>Buscar eleitor ou endereço</span></button><button class="pill" data-go="visitas">Visita</button></div>';
-  var rec=S.visitas.slice().reverse().slice(0,3);
-  if(rec.length)o+='<div class="list">'+rec.map(function(v){return '<button class="row2" data-go="visitas"><span class="sq">'+ico("rel")+'</span><span class="t"><b>'+esc(v.eleitorNome||"Visita")+'</b><span>'+esc(v.bairro||"Sem bairro")+' · '+(v.resultado?RES[v.resultado]:vC(v)+' contatos')+'</span></span>'+ico("chev")+'</button>'}).join("")+'</div>';
-  o+='<div class="sech"><h2>Materiais digitais</h2>'+(co?'<button class="pill" id="nm">+ Novo</button>':'')+'</div>';
-  o+=S.materiais.length?'<div class="scroller">'+S.materiais.map(matCard).join("")+'</div>':'<div class="empty">'+(co?'Adicione fotos, vídeos e links para a equipe compartilhar.':'Ainda não há materiais para compartilhar.')+'</div>';
-  o+='<h2>Resultado</h2><div class="scroller">'+
-   '<div class="card2" style="background:linear-gradient(135deg,#006b2b,#009c3b)"><div>'+(co?'Visitas da equipe ':'Suas visitas ')+(hj?'hoje':'no total')+'</div><div><div class="n" style="color:#ffdf00">'+feito+'</div>'+(hj?'<div>de '+meta+' da meta</div><div class="bar"><i style="width:'+pct+'%"></i></div>':'<div>'+(co?vs.length:own.length)+' registros</div>')+'</div></div>'+
-   '<div class="card2" style="background:linear-gradient(135deg,#00205f,#1d4fbf)"><div>Favoráveis</div><div><div class="n">'+fav+'</div><div>'+(tot?Math.round(fav/tot*100):0)+'% das visitas</div></div></div>'+
-   '<div class="card2" style="background:#ffdf00;color:#002776"><div>Indecisos</div><div><div class="n">'+ind+'</div><div>'+con+' contrários</div></div></div></div>';
-  var g={};vs.forEach(function(v){var k=v.criado_por||"?";g[k]=g[k]||{n:v.porNome||"Equipe",v:[]};g[k].v.push(v)});
-  var ks=Object.keys(g).sort(function(a,b){return sv(g[b].v,"c")-sv(g[a].v,"c")});
-  o+='<h2>Ranking '+(hj?'de hoje':'geral')+'</h2>';
-  o+=ks.length?ks.map(function(k,i){var n=sv(g[k].v,"c"),ac=S.acessos.find(function(a){return a.id===k}),m=hj&&ac?(ac.meta||30):0;
-    return '<div class="item"><div class="top"><strong>'+(i+1)+'. '+esc(g[k].n)+'</strong><span>'+n+(m?' / '+m:'')+'</span></div>'+(m?'<div class="bar"><i style="width:'+Math.min(100,Math.round(n/m*100))+'%"></i></div>':'')+'</div>'}).join(""):'<div class="empty">Nenhuma visita registrada ainda.</div>';
-  var bm={};S.visitas.forEach(function(v){var b=v.bairro||"Sem bairro";bm[b]=bm[b]||{c:0,f:0};bm[b].c+=vC(v);bm[b].f+=vR(v,"fav")});
-  var bl=Object.keys(bm).sort(function(a,b){return bm[b].c-bm[a].c}),mx=bl.length?bm[bl[0]].c:1;
-  if(bl.length)o+='<h2>Cobertura por bairro</h2>'+bl.slice(0,15).map(function(b){return '<div class="item"><div class="top"><strong>'+esc(b)+'</strong><span>'+bm[b].c+' visitas</span></div><div class="meta">'+bm[b].f+' favoráveis</div><div class="bar"><i style="width:'+Math.round(bm[b].c/mx*100)+'%"></i></div></div>'}).join("");
-  return o}
-
 /* ---------- Mapa ---------- */
 function pinIcon(c){return L.divIcon({className:"pin",html:'<svg viewBox="0 0 24 32" width="30" height="40"><path d="M12 1C5.9 1 1 5.9 1 12c0 8.5 11 19 11 19s11-10.5 11-19C23 5.9 18.1 1 12 1z" fill="'+c+'" stroke="#14213d" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" fill="#fff"/></svg>',iconSize:[30,40],iconAnchor:[15,40],popupAnchor:[0,-36]})}
-function popupHtml(l,vis){
-  var v=vis[l.id];
-  return '<strong>'+esc(l.nome)+'</strong><br>'+esc([l.endereco,l.bairro,l.cidade].filter(Boolean).join(" · "))+'<br>'+(l.aprox?'<em>Localização aproximada</em><br>':'')+(l.contato?esc(l.contato)+'<br>':'')+(l.obs?'<em>'+esc(l.obs)+'</em><br>':'')+
-  (v?'<b>Visitado em '+fmtData(v.data)+(v.resultado?' · '+RES[v.resultado]:'')+'</b>':'')+
-  '<a class="pbtn" href="'+wazeUrl(l)+'" target="_blank" rel="noopener">Ir com o Waze</a>'+(waUrl(l)?'<a class="pbtn wa" href="'+waUrl(l)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+
-  (isEle(l)&&!v?'<button class="pbtn reg" data-regp="'+l.id+'">Registrar visita</button>':'')}
 function viewMapa(){
   var n=S.locais.filter(hasLL).length,m=S.locais.length-n;
   return '<h1>Mapa</h1><p class="sub">Toque num pino para ir ao local pelo Waze ou chamar no WhatsApp</p>'+filtros()+
@@ -386,48 +371,102 @@ function bindMap(){
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(LM);
   var bs=[],vis=jaVisit();
   S.locais.filter(function(l){return hasLL(l)&&passa(l)}).forEach(function(l){
-    var cor=isEle(l)&&vis[l.id]?"#00a04a":(TIPOS[l.tipo]||TIPOS.Outro);
+    var cor=isEle(l)&&vis[l.id]?(vis[l.id].resultado==="nc"?"#6b7280":"#00a04a"):(TIPOS[l.tipo]||TIPOS.Outro);
     var mk=L.marker([l.lat,l.lng],{icon:pinIcon(cor),title:l.nome}).addTo(LM).bindPopup(popupHtml(l,vis));
     bs.push([l.lat,l.lng]);if(l.id===selLoc)setTimeout(function(){mk.openPopup()},400)});
   if(bs.length)LM.fitBounds(bs,{padding:[40,40],maxZoom:16});
   LM.on("popupopen",function(e){var b=e.popup.getElement().querySelector("[data-regp]");if(b)b.onclick=function(){preEleitor=b.dataset.regp;tab="visitas";render();scrollTo(0,0)}})}
 
 /* ---------- Visitas (registro) ---------- */
+/* ---------- Locais ---------- */
+function jaVisit(){var s={};S.visitas.forEach(function(v){if(v.eleitor&&v.resultado!=="ne")s[v.eleitor]=v});return s}
+function tentativas(id){return S.visitas.filter(function(v){return v.eleitor===id&&v.resultado==="ne"}).length}
+function vC(v){return v.eleitor?(v.resultado==="ne"?0:1):(+v.contatos||0)}
+function okUrl(u){return /^https?:\/\//i.test(String(u||""))}
+function rc(v){return RES[v.resultado]?v.resultado:"ind"}
+function dist(a,b){var R=6371,p=Math.PI/180,dl=(b.lat-a.lat)*p,dn=(b.lng-a.lng)*p,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*p)*Math.cos(b.lat*p)*Math.sin(dn/2)*Math.sin(dn/2);return 2*R*Math.asin(Math.sqrt(x))}
+function meusOn(){return soMeus===null?(!isCoord()&&S.locais.some(function(l){return l.responsavel===ME.id})):soMeus}
+function barra(near){return '<div class="seg"><button data-meus="1" aria-pressed="'+meusOn()+'">Só os meus</button>'+(near?'<button id="near" aria-pressed="'+!!pos+'">Mais perto de mim</button>':'')+'</div>'}
+function visPend(){var vis=jaVisit(),m=meusOn();return S.locais.filter(function(l){return isEle(l)&&!vis[l.id]&&passa(l)&&(!m||l.responsavel===ME.id)})}
+function matCard(m){
+  return '<div class="mat"><div class="mimg">'+(imgOk(m.imagem)?imgTag(m.imagem):'<span>'+esc(m.tipo||"Material")+'</span>')+'</div><div class="mb"><b>'+esc(m.titulo)+'</b>'+(m.descricao?'<div class="d">'+esc(m.descricao)+'</div>':'')+
+   '<div class="ac"><button class="pill" data-share="'+esc(m.id)+'">Compartilhar</button>'+(okUrl(m.url)?'<a class="pill" href="'+esc(m.url)+'" target="_blank" rel="noopener">Abrir</a>':'')+'<button class="link coord-only" data-delm="'+esc(m.id)+'">Remover</button></div></div></div>'}
+function viewPainel(){
+  var h=hoje(),hj=per==="hoje",vs=hj?S.visitas.filter(function(v){return v.data===h}):S.visitas;
+  var own=vs.filter(function(v){return v.criado_por===ME.id}),co=isCoord();
+  var feito=sv(co?vs:own,"c"),meta=co?S.acessos.filter(function(a){return a.papel==="cabo"||a.papel==="coordenador"}).reduce(function(t,a){return t+(a.meta||30)},0):(ME.meta||30);
+  var pct=hj&&meta?Math.min(100,Math.round(feito/meta*100)):0,fav=sv(vs,"fav"),ind=sv(vs,"ind"),con=sv(vs,"con"),tot=sv(vs,"c");
+  var o='<h1>Olá, '+esc(String(ME.nome||"").split(" ")[0])+'</h1>';
+  if(C.nome)o+='<div class="candc">'+(imgOk(C.foto)?imgTag(C.foto):FLAG)+'<div>'+(C.numero?'<div class="num">'+esc(C.numero)+'</div>':'')+'<b>'+esc(C.nome)+'</b><span>'+esc([C.cargo,C.partido].filter(Boolean).join(" · "))+'</span></div></div>';
+  if(!co&&!(ME.areas||[]).length)o+='<div class="warn">Você ainda não tem áreas liberadas. Peça ao coordenador para liberar as regiões em que você vai atuar.</div>';
+  if(co){var sr=S.locais.filter(function(l){return !l.regional&&nrm(l.cidade)==="betim"}).length;
+    if(sr)o+='<div class="warn">'+sr+' cadastro(s) de Betim estão sem regional e só aparecem para quem tiver a área "Betim (cidade toda)". Use Editar na aba Locais para definir a regional.</div>'}
+  o+='<div class="seg"><button data-per="hoje" aria-pressed="'+hj+'">Hoje</button><button data-per="total" aria-pressed="'+!hj+'">Total</button></div>';
+  o+='<div class="search"><button class="sb" data-go="locais" data-focus="1">'+ico("busca")+'<span>Buscar eleitor ou endereço</span></button><button class="pill" data-go="visitas">Visita</button></div>';
+  var rec=S.visitas.slice().reverse().slice(0,3);
+  if(rec.length)o+='<div class="list">'+rec.map(function(v){return '<button class="row2" data-go="visitas"><span class="sq">'+ico("rel")+'</span><span class="t"><b>'+esc(v.eleitorNome||"Visita")+'</b><span>'+esc(v.bairro||"Sem bairro")+' · '+esc(v.resultado?(RES[v.resultado]||""):vC(v)+' contatos')+'</span></span>'+ico("chev")+'</button>'}).join("")+'</div>';
+  o+='<div class="sech"><h2>Materiais digitais</h2>'+(co?'<button class="pill" id="nm">+ Novo</button>':'')+'</div>';
+  o+=S.materiais.length?'<div class="scroller">'+S.materiais.map(matCard).join("")+'</div>':'<div class="empty">'+(co?'Adicione fotos, vídeos e links para a equipe compartilhar.':'Ainda não há materiais para compartilhar.')+'</div>';
+  o+='<h2>Resultado</h2><div class="scroller">'+
+   '<div class="card2" style="background:linear-gradient(135deg,#006b2b,#009c3b)"><div>'+(co?'Visitas da equipe ':'Suas visitas ')+(hj?'hoje':'no total')+'</div><div><div class="n" style="color:#ffdf00">'+feito+'</div>'+(hj?'<div>de '+meta+' da meta</div><div class="bar"><i style="width:'+pct+'%"></i></div>':'<div>'+(co?vs.length:own.length)+' registros</div>')+'</div></div>'+
+   '<div class="card2" style="background:linear-gradient(135deg,#00205f,#1d4fbf)"><div>Favoráveis</div><div><div class="n">'+fav+'</div><div>'+(tot?Math.round(fav/tot*100):0)+'% das visitas</div></div></div>'+
+   '<div class="card2" style="background:#ffdf00;color:#002776"><div>Indecisos</div><div><div class="n">'+ind+'</div><div>'+con+' contrários</div></div></div></div>';
+  var g={};vs.forEach(function(v){var k=v.criado_por||"?";g[k]=g[k]||{n:v.porNome||"Equipe",v:[]};g[k].v.push(v)});
+  var ks=Object.keys(g).sort(function(a,b){return sv(g[b].v,"c")-sv(g[a].v,"c")});
+  o+='<h2>Ranking '+(hj?'de hoje':'geral')+'</h2>';
+  o+=ks.length?ks.map(function(k,i){var n=sv(g[k].v,"c"),ac=S.acessos.find(function(a){return a.id===k}),m=hj&&ac?(ac.meta||30):0;
+    return '<div class="item"><div class="top"><strong>'+(i+1)+'. '+esc(g[k].n)+'</strong><span>'+n+(m?' / '+m:'')+'</span></div>'+(m?'<div class="bar"><i style="width:'+Math.min(100,Math.round(n/m*100))+'%"></i></div>':'')+'</div>'}).join(""):'<div class="empty">Nenhuma visita registrada ainda.</div>';
+  var bm={};S.visitas.forEach(function(v){var b=v.bairro||"Sem bairro";bm[b]=bm[b]||{c:0,f:0};bm[b].c+=vC(v);bm[b].f+=vR(v,"fav")});
+  var bl=Object.keys(bm).sort(function(a,b){return bm[b].c-bm[a].c}),mx=Math.max(1,bl.length?bm[bl[0]].c:1);
+  if(bl.length)o+='<h2>Cobertura por bairro</h2>'+bl.slice(0,15).map(function(b){return '<div class="item"><div class="top"><strong>'+esc(b)+'</strong><span>'+bm[b].c+' visitas</span></div><div class="meta">'+bm[b].f+' favoráveis</div><div class="bar"><i style="width:'+Math.round(bm[b].c/mx*100)+'%"></i></div></div>'}).join("");
+  return o}
+function popupHtml(l,vis){
+  var v=vis[l.id],nc=v&&v.resultado==="nc";
+  return '<strong>'+esc(l.nome)+'</strong><br>'+esc([l.endereco,l.bairro,l.cidade].filter(Boolean).join(" · "))+'<br>'+(l.aprox?'<em>Localização aproximada (o Waze usa o endereço escrito)</em><br>':'')+(l.contato&&!nc?esc(l.contato)+'<br>':'')+(l.obs?'<em>'+esc(l.obs)+'</em><br>':'')+
+  (v?'<b>Visitado em '+esc(fmtData(v.data))+(v.resultado?' · '+esc(RES[v.resultado]||""):'')+'</b>':'')+
+  '<a class="pbtn" href="'+wazeUrl(l)+'" target="_blank" rel="noopener">Ir com o Waze</a>'+(waUrl(l)&&!nc?'<a class="pbtn wa" href="'+waUrl(l)+'" target="_blank" rel="noopener">WhatsApp</a>':'')+
+  (isEle(l)&&!v?'<button class="pbtn reg" data-regp="'+esc(l.id)+'">Registrar visita</button>':'')}
 function viewVisitas(){
-  var vis=jaVisit(),pend=S.locais.filter(function(l){return isEle(l)&&!vis[l.id]&&passa(l)});
-  var op=pend.map(function(l){return '<option value="'+l.id+'"'+(l.id===preEleitor?' selected':'')+'>'+esc(l.nome)+(l.bairro?' · '+esc(l.bairro):'')+'</option>'}).join("");
-  var o='<h1>Visitas</h1><p class="sub">Registre a visita a um eleitor e acompanhe o histórico</p>'+filtros();
+  var pend=visPend();
+  var op=pend.map(function(l){return '<option value="'+esc(l.id)+'"'+(l.id===preEleitor?' selected':'')+'>'+esc(l.nome)+(l.bairro?' · '+esc(l.bairro):'')+(tentativas(l.id)?' (já tentei)':'')+'</option>'}).join("");
+  var o='<h1>Visitas</h1><p class="sub">Registre a visita a um eleitor e acompanhe o histórico</p>'+filtros()+barra(false);
   o+=pend.length?'<div class="item"><div class="meta">Registrando como <b>'+esc(ME.nome)+'</b>. Esse nome é automático e não pode ser alterado.</div>'+
     '<label for="ve">Eleitor visitado</label><select id="ve">'+op+'</select>'+
-    '<label>Resultado da visita</label><div class="chips"><label class="chip"><input type="radio" name="res" value="fav" checked>Favorável</label><label class="chip"><input type="radio" name="res" value="ind">Indeciso</label><label class="chip"><input type="radio" name="res" value="con">Contrário</label></div>'+
-    '<label for="vo">Observações</label><textarea id="vo" rows="2" placeholder="O que o eleitor disse, pedidos, retorno"></textarea><button class="btn" id="sv">Registrar visita</button></div>':
+    '<label>Resultado da visita</label><div class="chips"><label class="chip"><input type="radio" name="res" value="fav">Favorável</label><label class="chip"><input type="radio" name="res" value="ind">Indeciso</label><label class="chip"><input type="radio" name="res" value="con">Contrário</label><label class="chip"><input type="radio" name="res" value="ne">Não encontrei</label><label class="chip"><input type="radio" name="res" value="nc">Pediu para não ser contatado</label></div>'+
+    '<div class="meta" style="margin-top:6px">"Não encontrei" mantém a pessoa na lista para tentar de novo. "Pediu para não ser contatado" encerra o contato e esconde o telefone.</div>'+
+    '<label for="vo">Observações</label><textarea id="vo" rows="2" placeholder="O que o eleitor disse, pedidos, retorno" maxlength="1000"></textarea>'+
+    '<div class="meta" style="margin-top:8px">Registre apenas pessoas que autorizaram o contato e respeite quem pedir para não ser contatado.</div><button class="btn" id="sv">Registrar visita</button></div>':
     '<div class="empty">Não há eleitores a visitar nesta seleção. Cadastre eleitores na aba Locais ou ajuste os filtros.</div>';
   var rg=S.visitas.filter(passa).slice().reverse().slice(0,100);
   o+='<h2>Registro de visitas</h2>';
   o+=rg.length?rg.map(function(v){var pode=isCoord()||v.criado_por===ME.id;
-    return '<div class="item"><div class="top"><strong>'+esc(v.eleitorNome||"Visita em "+(v.bairro||"bairro"))+'</strong>'+(v.resultado?'<span class="bd '+v.resultado+'">'+RES[v.resultado]+'</span>':'<span class="tag">'+vC(v)+' contatos</span>')+'</div>'+
-     '<div class="meta">'+esc([v.bairro,v.cidade].filter(Boolean).join(" · "))+'</div><div class="meta">por '+esc(v.porNome||"Equipe")+' · '+fmtData(v.data)+'</div>'+(v.obs?'<div class="meta">'+esc(v.obs)+'</div>':'')+
-     (pode?'<button class="link" data-delv="'+v.id+'">Excluir registro</button>':'')+'</div>'}).join(""):'<div class="empty">Nenhuma visita registrada nesta seleção.</div>';
+    return '<div class="item"><div class="top"><strong>'+esc(v.eleitorNome||"Visita em "+(v.bairro||"bairro"))+'</strong>'+(v.resultado?'<span class="bd '+rc(v)+'">'+esc(RES[rc(v)])+'</span>':'<span class="tag">'+vC(v)+' contatos</span>')+'</div>'+
+     '<div class="meta">'+esc([v.bairro,v.cidade].filter(Boolean).join(" · "))+'</div><div class="meta">por '+esc(v.porNome||"Equipe")+' · '+esc(fmtData(v.data))+'</div>'+(v.obs?'<div class="meta">'+esc(v.obs)+'</div>':'')+
+     (pode?'<button class="link" data-delv="'+esc(v.id)+'">Excluir registro</button>':'')+'</div>'}).join(""):'<div class="empty">Nenhuma visita registrada nesta seleção.</div>';
   return o}
-
-/* ---------- Locais ---------- */
 function viewLocais(){
-  var vis=jaVisit(),A=S.locais.filter(function(l){return isEle(l)&&!vis[l.id]}),B=S.locais.filter(function(l){return !isEle(l)});
-  var base=(sub==="visitar"?A:B).filter(passa);
+  var vis=jaVisit(),m=meusOn(),A=S.locais.filter(function(l){return isEle(l)&&!vis[l.id]}),B=S.locais.filter(function(l){return !isEle(l)});
+  var base=(sub==="visitar"?A:B).filter(passa).filter(function(l){return sub!=="visitar"||!m||l.responsavel===ME.id});
+  if(sub==="visitar"&&pos)base=base.slice().sort(function(a,b){return (hasLL(a)?dist(pos,a):1e9)-(hasLL(b)?dist(pos,b):1e9)});
   var ufo=Object.keys(UFS).map(function(u){return '<option'+(u===(C.estado||"MG")?' selected':'')+'>'+u+'</option>'}).join("");
   var o='<h1>Locais</h1><p class="sub">'+A.length+' eleitores a visitar · '+B.length+' outros locais</p>'+
-   '<div class="seg"><button data-sub="visitar" aria-pressed="'+(sub==="visitar")+'">Eleitores a visitar</button><button data-sub="outros" aria-pressed="'+(sub==="outros")+'">Outros locais</button></div>'+filtros()+
+   '<div class="seg"><button data-sub="visitar" aria-pressed="'+(sub==="visitar")+'">Eleitores a visitar</button><button data-sub="outros" aria-pressed="'+(sub==="outros")+'">Outros locais</button></div>'+(sub==="visitar"?barra(true):'')+filtros()+
    '<input id="bq" type="search" placeholder="Buscar por nome, bairro ou endereço" aria-label="Buscar" style="margin-bottom:8px">';
   o+=base.length?base.map(function(l){
+    var n=tentativas(l.id);
     return '<div class="item" data-q="'+esc(fold([l.nome,l.bairro,l.endereco,l.cidade,l.regional,l.tipo].join(" ")))+'"><div class="top"><strong>'+esc(l.nome)+'</strong><span class="tag">'+esc(isEle(l)?(l.regional||l.cidade||"Eleitor"):l.tipo)+'</span></div>'+
-     '<div class="meta">'+esc([l.bairro,l.cidade].filter(Boolean).join(" · "))+(l.endereco?'<br>'+esc(l.endereco):'')+(hasLL(l)?'':' · sem coordenadas (fora do mapa)'+(l.geofail?' · endereço não encontrado':''))+'</div>'+
-     (isEle(l)?'<button class="link" style="color:var(--teal)" data-reg="'+l.id+'">Registrar visita</button> &nbsp; ':'')+
-     (hasLL(l)?'<button class="link" style="color:var(--teal)" data-map="'+l.id+'">Ver no mapa</button> &nbsp; ':'')+
+     '<div class="meta">'+esc([l.bairro,l.cidade].filter(Boolean).join(" · "))+(l.endereco?'<br>'+esc(l.endereco):'')+
+     (sub==="visitar"&&pos&&hasLL(l)?' · '+esc(dist(pos,l).toFixed(1).replace(".",","))+' km':'')+
+     (hasLL(l)?'':' · sem coordenadas (fora do mapa)'+(l.geofail?' · endereço não encontrado':''))+
+     (l.responsavelNome?' · resp.: '+esc(l.responsavelNome):'')+(n?' · '+n+' tentativa(s) sem encontrar':'')+
+     (isEle(l)&&l.consentimento!=="sim"?' · <span class="warnt">autorização não registrada</span>':'')+'</div>'+
+     (isEle(l)?'<button class="link" style="color:var(--teal)" data-reg="'+esc(l.id)+'">Registrar visita</button> &nbsp; ':'')+
+     (hasLL(l)?'<button class="link" style="color:var(--teal)" data-map="'+esc(l.id)+'">Ver no mapa</button> &nbsp; ':'')+
      '<a class="link" style="color:var(--blue)" href="'+wazeUrl(l)+'" target="_blank" rel="noopener">Waze</a> &nbsp; '+(waUrl(l)?'<a class="link" style="color:var(--teal)" href="'+waUrl(l)+'" target="_blank" rel="noopener">WhatsApp</a> &nbsp; ':'')+
-     '<button class="link coord-only" style="color:var(--teal)" data-edit="'+l.id+'">Editar</button> &nbsp; <button class="link coord-only" data-dell="'+l.id+'">Remover</button></div>'}).join(""):
+     '<button class="link coord-only" style="color:var(--teal)" data-edit="'+esc(l.id)+'">Editar</button> &nbsp; <button class="link coord-only" data-dell="'+esc(l.id)+'">Remover</button></div>'}).join(""):
    '<div class="empty">'+(sub==="visitar"?'Nenhum eleitor a visitar nesta seleção. Os já visitados ficam na aba Visitas.':'Nenhum local nesta seleção.')+'</div>';
   o+='<details class="coord-only" style="margin-top:14px"><summary class="btn alt" style="cursor:pointer">+ Adicionar ou importar</summary>'+
-   '<h2>Importar planilha</h2><p class="meta">Arquivo .csv ou .xlsx com cabeçalho na primeira linha. Colunas aceitas: nome, tipo, estado, cidade, regional, bairro, endereço, latitude, longitude (ou coordenadas), contato, obs. Só "nome" é obrigatória; sem "tipo", o item entra como eleitor a visitar. Sem coordenadas, o app localiza o endereço sozinho (um por segundo).</p><input id="lf" type="file" accept=".csv,.xlsx,.xls,.txt"><div class="meta" id="lm" role="status">'+esc(impMsg)+'</div>'+
+   '<h2>Importar planilha</h2><p class="meta">Arquivo .csv ou .xlsx com cabeçalho na primeira linha. Colunas aceitas: nome, tipo, estado, cidade, regional, bairro, endereço, latitude, longitude (ou coordenadas), contato, autorizou (sim/não), responsavel (e-mail do cabo), obs. Só "nome" é obrigatória; sem "tipo", o item entra como eleitor a visitar. Cadastros repetidos (mesmo nome e telefone ou endereço) são ignorados. Sem coordenadas, o app localiza o endereço sozinho (um por segundo).</p><input id="lf" type="file" accept=".csv,.xlsx,.xls,.txt"><div class="meta" id="lm" role="status">'+esc(impMsg)+'</div>'+
    '<h2>Adicionar manualmente</h2><div>'+formLocal(null,ufo)+'<button class="btn" id="sl">Adicionar</button></div></details>';
   if(S.locais.length)o+='<button class="link coord-only" id="lx" style="margin-top:12px">Remover todos os locais</button>';
   return o}
@@ -436,6 +475,7 @@ function formLocal(l,ufo){
   var tp=Object.keys(TIPOS).map(function(t){return '<option'+(l&&l.tipo===t?' selected':'')+'>'+t+'</option>'}).join("");
   var uf=l?Object.keys(UFS).map(function(u){return '<option'+(u===l.estado?' selected':'')+'>'+u+'</option>'}).join(""):ufo;
   var rl=REGS.map(function(r){return '<option value="'+r[0]+'">'}).join("");
+  var mem=S.acessos.filter(function(a){return a.papel==="cabo"||a.papel==="coordenador"}).map(function(a){return '<option value="'+esc(a.id)+'"'+(l&&l.responsavel===a.id?' selected':'')+'>'+esc(a.nome||a.email)+'</option>'}).join("");
   return '<label for="ln">Nome</label><input id="ln" value="'+v("nome")+'" autocomplete="off">'+
    '<label for="lt">Tipo</label><select id="lt">'+tp+'</select>'+
    '<label for="ls">Estado</label><select id="ls">'+uf+'</select>'+
@@ -445,29 +485,10 @@ function formLocal(l,ufo){
    '<label for="le">Endereço</label><input id="le" value="'+v("endereco")+'" placeholder="Rua, número, CEP">'+
    '<label for="lc">Coordenadas (latitude, longitude)</label><input id="lc" value="'+(l&&hasLL(l)?l.lat+", "+l.lng:"")+'" placeholder="-19.9677, -44.1983"><div class="meta">Opcional: sem elas, o app localiza o endereço. Se mudar o endereço, deixe as coordenadas como estão.</div>'+
    '<label for="lk">Telefone / WhatsApp</label><input id="lk" value="'+v("contato")+'" inputmode="tel">'+
+   '<label for="lau">Autorização para contato</label><select id="lau"><option value="sim"'+(l&&l.consentimento==="sim"?' selected':'')+'>Sim, a pessoa autorizou</option><option value=""'+(l&&l.consentimento==="sim"?'':' selected')+'>Não informado</option></select>'+
+   '<label for="lre">Responsável pela visita</label><select id="lre"><option value="">Sem responsável</option>'+mem+'</select>'+
    '<label for="lo">Observações</label><textarea id="lo" rows="2">'+v("obs")+'</textarea>'}
 /* ---------- Equipe / Conta ---------- */
-function viewEquipe(){
-  var o='<h1>'+(isCoord()?'Equipe':'Conta')+'</h1>';
-  if(isCoord()){
-    o+='<p class="sub">Dados da campanha, acessos e áreas de cada pessoa</p><div class="item"><div class="top"><strong>'+esc(C.nome||"Dados da campanha")+'</strong><span class="tag">'+esc(C.numero?"Nº "+C.numero:"sem número")+'</span></div><div class="meta">'+esc([C.cargo,C.partido,C.cidade?C.cidade+"/"+(C.estado||""):""].filter(Boolean).join(" · ")||"Informe candidato, número, cargo, partido e foto.")+'</div><button class="btn alt" id="ecamp">Editar dados da campanha</button></div>';
-    o+='<h2>Acessos</h2>'+(S.acessos.length?S.acessos.map(function(a){
-      var eu=a.id===ME.id,nm=a.nome||a.email;
-      var ac=eu?'<div class="meta">Você</div>':
-       (a.papel!=="cabo"?'<button class="link" style="color:var(--teal)" data-pap="cabo" data-uid="'+a.id+'">Liberar como cabo</button> &nbsp; ':'')+
-       (a.papel!=="coordenador"?'<button class="link" style="color:var(--blue)" data-pap="coordenador" data-uid="'+a.id+'">Tornar coordenador</button> &nbsp; ':'')+
-       (a.papel!=="pendente"?'<button class="link" data-pap="pendente" data-uid="'+a.id+'">Bloquear</button> &nbsp; ':'');
-      var det=a.papel==="pendente"?'Aguardando liberação':('Meta '+(a.meta||30)+'/dia · '+(a.papel==="coordenador"?'todas as áreas':((a.areas||[]).length||"nenhuma")+' áreas liberadas'));
-      return '<div class="item"><div class="top"><span style="display:flex;align-items:center;gap:10px;min-width:0"><span class="av sm">'+(a.foto?'<img src="'+a.foto+'" alt="">':esc(String(nm).charAt(0).toUpperCase()))+'</span><span style="min-width:0"><strong>'+esc(nm)+'</strong><div class="meta">'+esc(a.email)+'</div></span></span><span class="tag">'+esc(a.papel)+'</span></div><div class="meta" style="margin-top:6px">'+det+'</div>'+ac+(a.papel!=="pendente"?'<button class="link" style="color:var(--teal)" data-areas="'+a.id+'">Áreas e meta</button>':'')+'</div>'}).join(""):'<div class="empty">Ninguém além de você tem conta ainda.</div>');
-  }
-  var av=ME.foto?'<img src="'+ME.foto+'" alt="">':esc(String(ME.nome||"?").charAt(0).toUpperCase());
-  o+='<h2>Minha conta</h2><div class="item"><div class="prof"><span class="av big">'+av+'</span><div><b>'+esc(ME.nome)+'</b><div class="meta">'+esc(ME.email)+' · '+esc(ME.papel)+'</div></div></div>'+
-   '<label for="pnome">Meu nome</label><input id="pnome" value="'+esc(ME.nome)+'" maxlength="60"><button class="btn alt" id="pn">Salvar nome</button>'+
-   '<label for="pf">Foto de perfil</label><input id="pf" type="file" accept="image/*">'+
-   '<button class="btn alt" id="shr2">Indicar o app</button><button class="btn alt" id="inst" hidden>Instalar no celular</button>'+
-   '<div class="meta" style="margin-top:8px">No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início.</div><button class="link" id="out">Sair</button></div>';
-  return o}
-
 /* ---------- janelas (campanha, áreas, material, editar local) ---------- */
 function sheetCampanha(){
   var ufo=Object.keys(UFS).map(function(u){return '<option'+(u===(C.estado||"MG")?' selected':'')+'>'+u+'</option>'}).join(""),foto=C.foto||"";
@@ -513,15 +534,6 @@ function sheetMaterial(){
     if(!u&&!img){toast("Informe um link ou escolha uma imagem");return}
     if(u&&!/^https?:\/\//i.test(u)){toast("O link precisa começar com http:// ou https://");return}
     var ok=await dbDo(col("materiais").add({titulo:t,descricao:sh.q("m_d").value.trim(),tipo:sh.q("m_k").value,url:u,imagem:img,criado_por:ME.id,criado_em:Date.now()}),"Material publicado");if(ok)sh.close()}}
-function lerForm(q,l){
-  var cs=q("lc").value.trim(),ll=cs?parseLL(cs):null;
-  if(cs&&!ll){toast("Coordenadas inválidas. Use o formato -19.9677, -44.1983");return null}
-  var d={nome:q("ln").value.trim(),tipo:q("lt").value,estado:q("ls").value,cidade:q("lci").value.trim(),regional:q("lr").value.trim(),bairro:q("lb").value.trim(),endereco:q("le").value.trim(),contato:q("lk").value.trim(),obs:q("lo").value.trim(),lat:ll?ll[0]:null,lng:ll?ll[1]:null};
-  if(!d.nome){toast("Informe o nome");return null}
-  if(l){var orig=hasLL(l)?l.lat+", "+l.lng:"";
-    if(cs===orig){d.lat=hasLL(l)?l.lat:null;d.lng=hasLL(l)?l.lng:null;
-      if(d.endereco!==(l.endereco||"")||d.bairro!==(l.bairro||"")||d.cidade!==(l.cidade||"")){d.lat=null;d.lng=null}}}
-  completa(d);d.aprox=false;d.geofail=false;return d}
 function editLocal(id){
   var l=S.locais.find(function(x){return x.id===id});if(!l)return;
   var sh=sheet('<h2 style="margin-top:0">Editar</h2>'+formLocal(l)+'<button class="btn" id="es">Salvar alterações</button><button class="btn alt" id="ec">Cancelar</button>');
@@ -530,16 +542,6 @@ function editLocal(id){
     var ok=await dbDo(col("locais").doc(id).update(d),"Atualizado");if(ok){sh.close();geocodeAll()}}}
 
 /* ---------- ações ---------- */
-async function salvarVisita(){
-  var l=S.locais.find(function(x){return x.id===document.getElementById("ve").value});if(!l){toast("Escolha o eleitor visitado");return}
-  if(!l.area){toast("Este eleitor ainda não tem área definida. Peça ao coordenador.");return}
-  var rs=document.querySelector('input[name=res]:checked');
-  preEleitor="";
-  dbDo(col("visitas").add({eleitor:l.id,eleitorNome:l.nome,bairro:l.bairro||"",cidade:l.cidade||"",estado:l.estado||"",regional:l.regional||"",area:l.area,resultado:rs?rs.value:"ind",obs:document.getElementById("vo").value.trim(),data:hoje(),criado_por:ME.id,porNome:ME.nome,criado_em:Date.now()}),"Visita registrada")}
-async function salvarLocal(){
-  var d=lerForm(function(i){return document.getElementById(i)},null);if(!d)return;
-  d.criado_por=ME.id;d.criado_em=Date.now();
-  var ok=await dbDo(col("locais").add(d),"Adicionado");if(ok)geocodeAll()}
 async function delTodos(){for(var i=0;i<S.locais.length;i+=400){var b=db.batch();S.locais.slice(i,i+400).forEach(function(l){b.delete(col("locais").doc(l.id))});await b.commit()}}
 async function cepInfo(c){try{var r=await fetch("https://brasilapi.com.br/api/cep/v2/"+c);if(!r.ok)return null;return await r.json()}catch(e){return null}}
 async function geoOne(l){
@@ -574,6 +576,62 @@ async function geocodeAll(){
     if(f){ok++;if(f.aprox)ap++}}
   geoBusy=false;await loadAll();
   impMsg=ok+" de "+q.length+" endereços localizados"+(ap?" ("+ap+" de forma aproximada)":"")+(ok<q.length?". Para os demais, use Editar e informe as coordenadas.":".");render()}
+/* ---------- ligações da tela ---------- */
+function render(){
+  var nv=document.querySelector("nav");hdr();
+  if(!liberado()){nv.hidden=true;return gate()}
+  document.body.classList.remove("gated");var gg=document.getElementById("gate");if(gg)gg.remove();
+  nv.hidden=false;document.body.classList.toggle("cabo",!isCoord());tabs();
+  $("#app").innerHTML=tab==="painel"?viewPainel():tab==="mapa"?viewMapa():tab==="visitas"?viewVisitas():tab==="locais"?viewLocais():viewEquipe();
+  bindAll()}
+function csv(rows){return "\uFEFF"+rows.map(function(r){return r.map(function(c){c=String(c==null?"":c);if(/^[=+\-@]/.test(c)&&!/^-?\d+([.,]\d+)?$/.test(c))c="'"+c;return '"'+c.replace(/"/g,'""')+'"'}).join(";")}).join("\r\n")}
+function baixar(nome,txt){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},600)}
+function exportar(qual){
+  var d=hoje();
+  if(qual==="eleitores")baixar("eleitores-"+d+".csv",csv([["nome","tipo","estado","cidade","regional","bairro","endereco","latitude","longitude","contato","autorizou","responsavel","obs"]].concat(S.locais.map(function(l){return [l.nome,l.tipo,l.estado,l.cidade,l.regional,l.bairro,l.endereco,hasLL(l)?l.lat:"",hasLL(l)?l.lng:"",l.contato,l.consentimento==="sim"?"sim":"nao",l.responsavelNome||"",l.obs]}))));
+  else baixar("visitas-"+d+".csv",csv([["data","eleitor","bairro","cidade","regional","resultado","registrado_por","obs"]].concat(S.visitas.map(function(v){return [v.data,v.eleitorNome||"",v.bairro,v.cidade,v.regional,v.resultado?(RES[v.resultado]||v.resultado):"",v.porNome||"",v.obs]}))))}
+function viewEquipe(){
+  var o='<h1>'+(isCoord()?'Equipe':'Conta')+'</h1>';
+  if(isCoord()){
+    o+='<p class="sub">Dados da campanha, acessos e áreas de cada pessoa</p><div class="item"><div class="top"><strong>'+esc(C.nome||"Dados da campanha")+'</strong><span class="tag">'+esc(C.numero?"Nº "+C.numero:"sem número")+'</span></div><div class="meta">'+esc([C.cargo,C.partido,C.cidade?C.cidade+"/"+(C.estado||""):""].filter(Boolean).join(" · ")||"Informe candidato, número, cargo, partido e foto.")+'</div><button class="btn alt" id="ecamp">Editar dados da campanha</button></div>';
+    o+='<h2>Acessos</h2>'+(S.acessos.length?S.acessos.map(function(a){
+      var eu=a.id===ME.id,nm=a.nome||a.email;
+      var ac=eu?'<div class="meta">Você</div>':
+       (a.papel!=="cabo"?'<button class="link" style="color:var(--teal)" data-pap="cabo" data-uid="'+esc(a.id)+'">Liberar como cabo</button> &nbsp; ':'')+
+       (a.papel!=="coordenador"?'<button class="link" style="color:var(--blue)" data-pap="coordenador" data-uid="'+esc(a.id)+'">Tornar coordenador</button> &nbsp; ':'')+
+       (a.papel!=="pendente"?'<button class="link" data-pap="pendente" data-uid="'+esc(a.id)+'">Bloquear</button> &nbsp; ':'');
+      var det=a.papel==="pendente"?'Aguardando liberação':('Meta '+(a.meta||30)+'/dia · '+(a.papel==="coordenador"?'todas as áreas':((a.areas||[]).length||"nenhuma")+' áreas liberadas'));
+      return '<div class="item"><div class="top"><span style="display:flex;align-items:center;gap:10px;min-width:0"><span class="av sm">'+(imgOk(a.foto)?imgTag(a.foto):esc(String(nm).charAt(0).toUpperCase()))+'</span><span style="min-width:0"><strong>'+esc(nm)+'</strong><div class="meta">'+esc(a.email)+'</div></span></span><span class="tag">'+esc(a.papel)+'</span></div><div class="meta" style="margin-top:6px">'+det+'</div>'+ac+(a.papel!=="pendente"?'<button class="link" style="color:var(--teal)" data-areas="'+esc(a.id)+'">Áreas e meta</button>':'')+'</div>'}).join(""):'<div class="empty">Ninguém além de você tem conta ainda.</div>');
+    o+='<h2>Dados e privacidade</h2><div class="item"><div class="meta">Os dados de eleitores (inclusive a opinião política registrada) são sensíveis. Exporte uma cópia de segurança antes de qualquer remoção em massa, apague quem pedir e descarte tudo ao fim da campanha, conforme orientação do seu advogado eleitoral.</div><button class="btn alt" id="exl">Exportar eleitores (CSV)</button><button class="btn alt" id="exv">Exportar visitas (CSV)</button></div>'}
+  var av=imgOk(ME.foto)?imgTag(ME.foto):esc(String(ME.nome||"?").charAt(0).toUpperCase());
+  o+='<h2>Minha conta</h2><div class="item"><div class="prof"><span class="av big">'+av+'</span><div><b>'+esc(ME.nome)+'</b><div class="meta">'+esc(ME.email)+' · '+esc(ME.papel)+'</div></div></div>'+
+   '<label for="pnome">Meu nome</label><input id="pnome" value="'+esc(ME.nome)+'" maxlength="60"><button class="btn alt" id="pn">Salvar nome</button>'+
+   '<label for="pf">Foto de perfil</label><input id="pf" type="file" accept="image/*">'+
+   '<button class="btn alt" id="shr2">Indicar o app</button><button class="btn alt" id="inst" hidden>Instalar no celular</button>'+
+   '<div class="meta" style="margin-top:8px">No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início.</div><button class="link" id="out">Sair</button></div>';
+  return o}
+function lerForm(q,l){
+  var cs=q("lc").value.trim(),ll=cs?parseLL(cs):null;
+  if(cs&&!ll){toast("Coordenadas inválidas. Use o formato -19.9677, -44.1983");return null}
+  var d={nome:q("ln").value.trim(),tipo:q("lt").value,estado:q("ls").value,cidade:q("lci").value.trim(),regional:q("lr").value.trim(),bairro:q("lb").value.trim(),endereco:q("le").value.trim(),contato:q("lk").value.trim(),obs:q("lo").value.trim(),lat:ll?ll[0]:null,lng:ll?ll[1]:null};
+  if(!d.nome){toast("Informe o nome");return null}
+  d.consentimento=q("lau").value;d.consentimentoEm=d.consentimento==="sim"?((l&&l.consentimento==="sim"&&l.consentimentoEm)||hoje()):"";
+  var rid=q("lre").value,rm=S.acessos.find(function(a){return a.id===rid});d.responsavel=rid;d.responsavelNome=rm?(rm.nome||rm.email):"";
+  if(l){var orig=hasLL(l)?l.lat+", "+l.lng:"";
+    if(cs===orig){d.lat=hasLL(l)?l.lat:null;d.lng=hasLL(l)?l.lng:null;
+      if(d.endereco!==(l.endereco||"")||d.bairro!==(l.bairro||"")||d.cidade!==(l.cidade||"")){d.lat=null;d.lng=null}}}
+  completa(d);d.aprox=false;d.geofail=false;return d}
+async function salvarVisita(){
+  var l=S.locais.find(function(x){return x.id===document.getElementById("ve").value});if(!l){toast("Escolha o eleitor visitado");return}
+  if(!l.area){toast("Este eleitor ainda não tem área definida. Peça ao coordenador.");return}
+  var rs=document.querySelector('input[name=res]:checked');if(!rs){toast("Escolha o resultado da visita");return}
+  preEleitor="";
+  dbDo(col("visitas").add({eleitor:l.id,eleitorNome:l.nome,bairro:l.bairro||"",cidade:l.cidade||"",estado:l.estado||"",regional:l.regional||"",area:l.area,resultado:rs.value,obs:document.getElementById("vo").value.trim().slice(0,1000),data:hoje(),criado_por:ME.id,porNome:ME.nome,criado_em:Date.now()}),"Visita registrada")}
+async function salvarLocal(){
+  var d=lerForm(function(i){return document.getElementById(i)},null);if(!d)return;
+  var k=chaveDup(d);if(S.locais.some(function(l){return chaveDup(l)===k})&&!confirm("Já existe um cadastro parecido (mesmo nome e telefone ou endereço). Adicionar mesmo assim?"))return;
+  d.criado_por=ME.id;d.criado_em=Date.now();
+  var ok=await dbDo(col("locais").add(d),"Adicionado");if(ok)geocodeAll()}
 function importar(f){
   if(!f)return;var ext=f.name.split(".").pop().toLowerCase();
   f.arrayBuffer().then(async function(buf){
@@ -586,28 +644,34 @@ function importar(f){
       if(window.XLSX){var w2=XLSX.read(t,{type:"string"});ws=w2.Sheets[w2.SheetNames[0]]}
       else rows=t.split(/\r?\n/).filter(Boolean).map(function(l){return l.split(l.indexOf(";")>-1?";":",")})}
     if(ws)rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""});
-    var A={nome:"nome",local:"nome",eleitor:"nome",tipo:"tipo",categoria:"tipo",estado:"estado",uf:"estado",cidade:"cidade",municipio:"cidade",regional:"regional",regiao:"regional",bairro:"bairro",endereco:"endereco",rua:"endereco",logradouro:"endereco",lat:"lat",latitude:"lat",lng:"lng",lon:"lng",long:"lng",longitude:"lng",coordenadas:"coord",coordenada:"coord",coords:"coord",contato:"contato",telefone:"contato",tel:"contato",whatsapp:"contato",fone:"contato",celular:"contato",obs:"obs",observacao:"obs",observacoes:"obs"};
+    var A={nome:"nome",local:"nome",eleitor:"nome",tipo:"tipo",categoria:"tipo",estado:"estado",uf:"estado",cidade:"cidade",municipio:"cidade",regional:"regional",regiao:"regional",bairro:"bairro",endereco:"endereco",rua:"endereco",logradouro:"endereco",lat:"lat",latitude:"lat",lng:"lng",lon:"lng",long:"lng",longitude:"lng",coordenadas:"coord",coordenada:"coord",coords:"coord",contato:"contato",telefone:"contato",tel:"contato",whatsapp:"contato",fone:"contato",celular:"contato",obs:"obs",observacao:"obs",observacoes:"obs",autorizou:"aut",autorizacao:"aut",consentimento:"aut",responsavel:"resp",cabo:"resp"};
     var hd=(rows[0]||[]).map(function(h){return A[nrm(h)]||""});
     if(hd.indexOf("nome")<0){impMsg='Não encontrei a coluna "nome" na primeira linha da planilha.';return render()}
-    var arr=[],sem=0;
+    var arr=[],sem=0,dup=0,seen={};S.locais.forEach(function(l){seen[chaveDup(l)]=1});
     rows.slice(1).forEach(function(r){
       var o={};hd.forEach(function(k,i){if(k)o[k]=String(r[i]==null?"":r[i]).trim()});if(!o.nome)return;
       var a=num(o.lat),b=num(o.lng),ll=okLL(a,b)?[a,b]:parseLL(o.coord);
       var tp=Object.keys(TIPOS).filter(function(t){return nrm(t)===nrm(o.tipo||"")})[0]||(o.tipo?"Outro":"Eleitor a visitar");
       var d=completa({nome:o.nome,tipo:tp,estado:o.estado,cidade:o.cidade,regional:regFrom(o.regional)||o.regional||"",bairro:o.bairro||"",endereco:o.endereco||"",lat:ll?ll[0]:null,lng:ll?ll[1]:null,contato:o.contato||"",obs:o.obs||""});
+      var ck=chaveDup(d);if(seen[ck]){dup++;return}seen[ck]=1;
+      var au=/^(s|sim|1|x|true)$/i.test(fold(o.aut||"").trim());d.consentimento=au?"sim":"";d.consentimentoEm=au?hoje():"";
+      var rm=o.resp?S.acessos.find(function(x){return fold(x.email)===fold(o.resp)}):null;d.responsavel=rm?rm.id:"";d.responsavelNome=rm?(rm.nome||rm.email):"";
       d.aprox=false;d.geofail=false;d.criado_por=ME.id;d.criado_em=Date.now();arr.push(d);if(!ll)sem++});
     try{for(var i=0;i<arr.length;i+=400){var bt=db.batch();arr.slice(i,i+400).forEach(function(d){bt.set(col("locais").doc(),d)});await bt.commit()}}
     catch(e){impMsg="Erro ao salvar: "+errMsg(e);return render()}
-    await loadAll();impMsg=arr.length+" itens importados"+(sem?". Localizando "+sem+" endereços no mapa...":".");render();geocodeAll()
+    await loadAll();impMsg=arr.length+" itens importados"+(dup?", "+dup+" repetidos ignorados":"")+(sem?". Localizando "+sem+" endereços no mapa...":".");render();geocodeAll()
   }).catch(function(){impMsg="Não consegui ler esse arquivo.";render()})}
-
-/* ---------- ligações da tela ---------- */
 function bindAll(){
   var q=function(id){return document.getElementById(id)},on=function(s,fn){document.querySelectorAll(s).forEach(fn)};
   bindMap();
   on("[data-go]",function(b){b.onclick=function(){tab=b.dataset.go;focusBusca=!!b.dataset.focus;render();scrollTo(0,0)}});
   on("[data-per]",function(b){b.onclick=function(){per=b.dataset.per;render()}});
   on("[data-sub]",function(b){b.onclick=function(){sub=b.dataset.sub;render()}});
+  on("[data-meus]",function(b){b.onclick=function(){soMeus=!meusOn();render()}});
+  if(q("near"))q("near").onclick=function(){
+    if(pos){pos=null;render();return}
+    if(!navigator.geolocation){toast("Seu aparelho não informa a localização");return}
+    navigator.geolocation.getCurrentPosition(function(p){pos={lat:p.coords.latitude,lng:p.coords.longitude};render()},function(){toast("Não consegui pegar sua localização. Verifique a permissão.")},{enableHighAccuracy:true,timeout:10000})};
   on("[data-f]",function(s){s.onchange=function(){var o=["uf","cid","reg","bai"],i=o.indexOf(s.dataset.f);F[o[i]]=s.value;for(var j=i+1;j<4;j++)F[o[j]]="";render()}});
   var bq=q("bq");if(bq){bq.oninput=function(){var t=fold(bq.value).split(/\s+/).filter(Boolean);on(".item[data-q]",function(it){var x=it.dataset.q;it.hidden=!t.every(function(k){return x.indexOf(k)>=0})})};if(focusBusca){focusBusca=false;bq.focus()}}
   on("[data-reg]",function(b){b.onclick=function(){preEleitor=b.dataset.reg;tab="visitas";render();scrollTo(0,0)}});
@@ -621,6 +685,8 @@ function bindAll(){
   on("[data-areas]",function(b){b.onclick=function(){sheetAreas(b.dataset.areas)}});
   if(q("nm"))q("nm").onclick=sheetMaterial;
   if(q("ecamp"))q("ecamp").onclick=sheetCampanha;
+  if(q("exl"))q("exl").onclick=function(){exportar("eleitores")};
+  if(q("exv"))q("exv").onclick=function(){exportar("visitas")};
   if(q("sv"))q("sv").onclick=salvarVisita;
   if(q("sl"))q("sl").onclick=salvarLocal;
   if(q("geo"))q("geo").onclick=async function(){
@@ -628,7 +694,9 @@ function bindAll(){
     var b=db.batch();S.locais.filter(function(l){return l.geofail}).forEach(function(l){b.update(col("locais").doc(l.id),{geofail:false})});
     try{await b.commit()}catch(e){toast(errMsg(e));return}await loadAll();geocodeAll()};
   if(q("lf"))q("lf").onchange=function(){impMsg="";importar(this.files[0])};
-  if(q("lx"))q("lx").onclick=function(){if(confirm("Remover TODOS os locais e eleitores para todos os usuários?")){selLoc=null;dbDo(delTodos())}};
+  if(q("lx"))q("lx").onclick=function(){
+    var t=prompt("Isto apaga TODOS os eleitores e locais, para todos os usuários, e não dá para desfazer. Antes, exporte uma cópia em Equipe. Para confirmar, digite APAGAR:");
+    if(t&&t.trim().toUpperCase()==="APAGAR"){selLoc=null;dbDo(delTodos())}};
   if(q("shr2"))q("shr2").onclick=indicar;
   if(q("inst")){q("inst").hidden=!dpr;q("inst").onclick=function(){if(dpr){dpr.prompt();dpr=null;q("inst").hidden=true}}}
   if(q("pn"))q("pn").onclick=function(){var n=q("pnome").value.trim();if(!n){toast("Informe seu nome");return}
@@ -636,21 +704,17 @@ function bindAll(){
   if(q("pf"))q("pf").onchange=function(){var f=this.files[0];if(!f)return;
     imgData(f,160,.8,true,function(d){dbDo(col("perfis").doc(ME.id).update({foto:d}),"Foto atualizada").then(async function(ok){if(ok){await loadMe();render()}})})};
   if(q("out"))q("out").onclick=sair}
-function render(){
-  var nv=document.querySelector("nav");hdr();
-  if(!liberado()){nv.hidden=true;return gate()}
-  document.body.classList.remove("gated");var gg=document.getElementById("gate");if(gg)gg.remove();
-  nv.hidden=false;document.body.classList.toggle("cabo",!isCoord());tabs();
-  $("#app").innerHTML=tab==="painel"?viewPainel():tab==="mapa"?viewMapa():tab==="visitas"?viewVisitas():tab==="locais"?viewLocais():viewEquipe();
-  bindAll()}
 async function boot(){
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
   $("#shr").onclick=indicar;$("#av").onclick=function(){if(ME){tab="equipe";render();scrollTo(0,0)}};
   if(!window.firebase){document.querySelector("nav").hidden=true;$("#app").innerHTML='<h1>Sem conexão</h1><p class="sub">Não consegui carregar o Firebase. Verifique a internet e recarregue.</p>';return}
+  var keep=false;try{keep=localStorage.getItem("campanha_manter")==="1"}catch(e){}
   firebase.initializeApp(CFG);fa=firebase.auth();db=firebase.firestore();
+  if(keep){try{await db.enablePersistence({synchronizeTabs:true});offlineOn=true}catch(e){}}
   await new Promise(function(res){var un=fa.onAuthStateChanged(function(){un();res()})});
-  if(fa.currentUser){try{await fa.signOut()}catch(e){}}
-  try{await fa.setPersistence(firebase.auth.Auth.Persistence.NONE)}catch(e){}
+  if(!keep){
+    if(fa.currentUser){try{await fa.signOut()}catch(e){}}
+    try{await fa.setPersistence(firebase.auth.Auth.Persistence.NONE)}catch(e){}}
   try{await loadMe();await loadAll();await fixAreas()}catch(e){toast(errMsg(e))}
   render()}
 boot();
