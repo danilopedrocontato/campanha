@@ -161,6 +161,11 @@ main{padding-top:14px}
 .bd.ne{background:#e5e7eb;color:#374151}.bd.nc{background:#e5e7eb;color:#7f1d1d}
 .gkeep{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-weight:600;font-size:.9rem}
 .gkeep input{width:20px;height:20px;flex:none;box-shadow:none}
+body[data-tab="equipe"] .top{background:var(--surf);color:var(--ink);box-shadow:none;border-radius:0;padding:18px 16px 12px}
+body[data-tab="equipe"] .top::after{display:none}
+body[data-tab="equipe"] .brand b{color:var(--ink)}
+body[data-tab="equipe"] .brand span{color:var(--mut)}
+body[data-tab="equipe"] .top .ib{background:var(--chip);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -466,7 +471,7 @@ function viewLocais(){
      '<button class="link coord-only" style="color:var(--teal)" data-edit="'+esc(l.id)+'">Editar</button> &nbsp; <button class="link coord-only" data-dell="'+esc(l.id)+'">Remover</button></div>'}).join(""):
    '<div class="empty">'+(sub==="visitar"?'Nenhum eleitor a visitar nesta seleção. Os já visitados ficam na aba Visitas.':'Nenhum local nesta seleção.')+'</div>';
   o+='<details class="coord-only" style="margin-top:14px"><summary class="btn alt" style="cursor:pointer">+ Adicionar ou importar</summary>'+
-   '<h2>Importar planilha</h2><p class="meta">Arquivo .csv ou .xlsx com cabeçalho na primeira linha. Colunas aceitas: nome, tipo, estado, cidade, regional, bairro, endereço, latitude, longitude (ou coordenadas), contato, autorizou (sim/não), responsavel (e-mail do cabo), obs. Só "nome" é obrigatória; sem "tipo", o item entra como eleitor a visitar. Cadastros repetidos (mesmo nome e telefone ou endereço) são ignorados. Sem coordenadas, o app localiza o endereço sozinho (um por segundo).</p><input id="lf" type="file" accept=".csv,.xlsx,.xls,.txt"><div class="meta" id="lm" role="status">'+esc(impMsg)+'</div>'+
+   '<h2>Planilha modelo</h2><p class="meta">1) Baixe a planilha modelo. 2) Preencha uma linha por pessoa (a aba "Instruções" explica cada coluna). 3) Apague as linhas de exemplo. 4) Importe o arquivo aqui. A exportação usa o mesmo modelo, então dá para exportar, corrigir e importar de volta. Repetidos são ignorados.</p><button class="btn alt" id="mod" type="button">Baixar planilha modelo</button><label for="lf">Importar planilha preenchida</label><input id="lf" type="file" accept=".xlsx,.xls,.csv,.txt"><div class="meta" id="lm" role="status">'+esc(impMsg)+'</div>'+
    '<h2>Adicionar manualmente</h2><div>'+formLocal(null,ufo)+'<button class="btn" id="sl">Adicionar</button></div></details>';
   if(S.locais.length)o+='<button class="link coord-only" id="lx" style="margin-top:12px">Remover todos os locais</button>';
   return o}
@@ -581,15 +586,11 @@ function render(){
   var nv=document.querySelector("nav");hdr();
   if(!liberado()){nv.hidden=true;return gate()}
   document.body.classList.remove("gated");var gg=document.getElementById("gate");if(gg)gg.remove();
-  nv.hidden=false;document.body.classList.toggle("cabo",!isCoord());tabs();
+  nv.hidden=false;document.body.classList.toggle("cabo",!isCoord());document.body.setAttribute("data-tab",tab);tabs();
   $("#app").innerHTML=tab==="painel"?viewPainel():tab==="mapa"?viewMapa():tab==="visitas"?viewVisitas():tab==="locais"?viewLocais():viewEquipe();
   bindAll()}
 function csv(rows){return "\uFEFF"+rows.map(function(r){return r.map(function(c){c=String(c==null?"":c);if(/^[=+\-@]/.test(c)&&!/^-?\d+([.,]\d+)?$/.test(c))c="'"+c;return '"'+c.replace(/"/g,'""')+'"'}).join(";")}).join("\r\n")}
 function baixar(nome,txt){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},600)}
-function exportar(qual){
-  var d=hoje();
-  if(qual==="eleitores")baixar("eleitores-"+d+".csv",csv([["nome","tipo","estado","cidade","regional","bairro","endereco","latitude","longitude","contato","autorizou","responsavel","obs"]].concat(S.locais.map(function(l){return [l.nome,l.tipo,l.estado,l.cidade,l.regional,l.bairro,l.endereco,hasLL(l)?l.lat:"",hasLL(l)?l.lng:"",l.contato,l.consentimento==="sim"?"sim":"nao",l.responsavelNome||"",l.obs]}))));
-  else baixar("visitas-"+d+".csv",csv([["data","eleitor","bairro","cidade","regional","resultado","registrado_por","obs"]].concat(S.visitas.map(function(v){return [v.data,v.eleitorNome||"",v.bairro,v.cidade,v.regional,v.resultado?(RES[v.resultado]||v.resultado):"",v.porNome||"",v.obs]}))))}
 function viewEquipe(){
   var o='<h1>'+(isCoord()?'Equipe':'Conta')+'</h1>';
   if(isCoord()){
@@ -602,7 +603,7 @@ function viewEquipe(){
        (a.papel!=="pendente"?'<button class="link" data-pap="pendente" data-uid="'+esc(a.id)+'">Bloquear</button> &nbsp; ':'');
       var det=a.papel==="pendente"?'Aguardando liberação':('Meta '+(a.meta||30)+'/dia · '+(a.papel==="coordenador"?'todas as áreas':((a.areas||[]).length||"nenhuma")+' áreas liberadas'));
       return '<div class="item"><div class="top"><span style="display:flex;align-items:center;gap:10px;min-width:0"><span class="av sm">'+(imgOk(a.foto)?imgTag(a.foto):esc(String(nm).charAt(0).toUpperCase()))+'</span><span style="min-width:0"><strong>'+esc(nm)+'</strong><div class="meta">'+esc(a.email)+'</div></span></span><span class="tag">'+esc(a.papel)+'</span></div><div class="meta" style="margin-top:6px">'+det+'</div>'+ac+(a.papel!=="pendente"?'<button class="link" style="color:var(--teal)" data-areas="'+esc(a.id)+'">Áreas e meta</button>':'')+'</div>'}).join(""):'<div class="empty">Ninguém além de você tem conta ainda.</div>');
-    o+='<h2>Dados e privacidade</h2><div class="item"><div class="meta">Os dados de eleitores (inclusive a opinião política registrada) são sensíveis. Exporte uma cópia de segurança antes de qualquer remoção em massa, apague quem pedir e descarte tudo ao fim da campanha, conforme orientação do seu advogado eleitoral.</div><button class="btn alt" id="exl">Exportar eleitores (CSV)</button><button class="btn alt" id="exv">Exportar visitas (CSV)</button></div>'}
+    o+='<h2>Dados e privacidade</h2><div class="item"><div class="meta">Os dados de eleitores (inclusive a opinião política registrada) são sensíveis. Exporte uma cópia de segurança antes de qualquer remoção em massa, apague quem pedir e descarte tudo ao fim da campanha, conforme orientação do seu advogado eleitoral.</div><button class="btn alt" id="exl">Exportar eleitores (planilha modelo)</button><button class="btn alt" id="exv">Exportar visitas (planilha)</button></div>'}
   var av=imgOk(ME.foto)?imgTag(ME.foto):esc(String(ME.nome||"?").charAt(0).toUpperCase());
   o+='<h2>Minha conta</h2><div class="item"><div class="prof"><span class="av big">'+av+'</span><div><b>'+esc(ME.nome)+'</b><div class="meta">'+esc(ME.email)+' · '+esc(ME.papel)+'</div></div></div>'+
    '<label for="pnome">Meu nome</label><input id="pnome" value="'+esc(ME.nome)+'" maxlength="60"><button class="btn alt" id="pn">Salvar nome</button>'+
@@ -644,12 +645,13 @@ function importar(f){
       if(window.XLSX){var w2=XLSX.read(t,{type:"string"});ws=w2.Sheets[w2.SheetNames[0]]}
       else rows=t.split(/\r?\n/).filter(Boolean).map(function(l){return l.split(l.indexOf(";")>-1?";":",")})}
     if(ws)rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""});
-    var A={nome:"nome",local:"nome",eleitor:"nome",tipo:"tipo",categoria:"tipo",estado:"estado",uf:"estado",cidade:"cidade",municipio:"cidade",regional:"regional",regiao:"regional",bairro:"bairro",endereco:"endereco",rua:"endereco",logradouro:"endereco",lat:"lat",latitude:"lat",lng:"lng",lon:"lng",long:"lng",longitude:"lng",coordenadas:"coord",coordenada:"coord",coords:"coord",contato:"contato",telefone:"contato",tel:"contato",whatsapp:"contato",fone:"contato",celular:"contato",obs:"obs",observacao:"obs",observacoes:"obs",autorizou:"aut",autorizacao:"aut",consentimento:"aut",responsavel:"resp",cabo:"resp"};
+    var A={nome:"nome",local:"nome",eleitor:"nome",tipo:"tipo",categoria:"tipo",estado:"estado",uf:"estado",cidade:"cidade",municipio:"cidade",regional:"regional",regiao:"regional",bairro:"bairro",endereco:"endereco",rua:"endereco",logradouro:"endereco",lat:"lat",latitude:"lat",lng:"lng",lon:"lng",long:"lng",longitude:"lng",coordenadas:"coord",coordenada:"coord",coords:"coord",contato:"contato",telefone:"contato",tel:"contato",whatsapp:"contato",fone:"contato",celular:"contato",obs:"obs",observacao:"obs",observacoes:"obs",autorizou:"aut",autorizoucontato:"aut",autorizacao:"aut",consentimento:"aut",responsavel:"resp",responsavelemail:"resp",cabo:"resp"};
     var hd=(rows[0]||[]).map(function(h){return A[nrm(h)]||""});
     if(hd.indexOf("nome")<0){impMsg='Não encontrei a coluna "nome" na primeira linha da planilha.';return render()}
     var arr=[],sem=0,dup=0,seen={};S.locais.forEach(function(l){seen[chaveDup(l)]=1});
     rows.slice(1).forEach(function(r){
       var o={};hd.forEach(function(k,i){if(k)o[k]=String(r[i]==null?"":r[i]).trim()});if(!o.nome)return;
+      if(/^exemplo/i.test(fold(o.obs||"")))return;
       var a=num(o.lat),b=num(o.lng),ll=okLL(a,b)?[a,b]:parseLL(o.coord);
       var tp=Object.keys(TIPOS).filter(function(t){return nrm(t)===nrm(o.tipo||"")})[0]||(o.tipo?"Outro":"Eleitor a visitar");
       var d=completa({nome:o.nome,tipo:tp,estado:o.estado,cidade:o.cidade,regional:regFrom(o.regional)||o.regional||"",bairro:o.bairro||"",endereco:o.endereco||"",lat:ll?ll[0]:null,lng:ll?ll[1]:null,contato:o.contato||"",obs:o.obs||""});
@@ -685,6 +687,7 @@ function bindAll(){
   on("[data-areas]",function(b){b.onclick=function(){sheetAreas(b.dataset.areas)}});
   if(q("nm"))q("nm").onclick=sheetMaterial;
   if(q("ecamp"))q("ecamp").onclick=sheetCampanha;
+  if(q("mod"))q("mod").onclick=baixarModelo;
   if(q("exl"))q("exl").onclick=function(){exportar("eleitores")};
   if(q("exv"))q("exv").onclick=function(){exportar("visitas")};
   if(q("sv"))q("sv").onclick=salvarVisita;
@@ -717,6 +720,45 @@ async function boot(){
     try{await fa.setPersistence(firebase.auth.Auth.Persistence.NONE)}catch(e){}}
   try{await loadMe();await loadAll();await fixAreas()}catch(e){toast(errMsg(e))}
   render()}
+var MODELO=["Nome","Telefone","Endereço","Bairro","Cidade","Estado","Regional","Tipo","Autorizou contato","Responsável (e-mail)","Observações","Latitude","Longitude"];
+var MODELO_W=[28,18,38,20,16,8,14,18,12,28,32,12,12];
+var INSTR=[
+ ["Como preencher a planilha modelo","","",""],
+ ["Use a aba Modelo. Uma linha por pessoa ou local. Não mude os títulos das colunas nem a ordem.","","",""],
+ ["Coluna","Obrigatória?","O que colocar","Exemplo"],
+ ["Nome","Sim","Nome da pessoa ou do local","Maria da Silva"],
+ ["Telefone","Não","Com DDD. Usado no botão de WhatsApp","(31) 99999-0000"],
+ ["Endereço","Não*","Rua, número e, se possível, o CEP. É por ele que o app acha o pino no mapa","Rua das Flores, 123, 32600-000"],
+ ["Bairro","Não*","Nome do bairro","Centro"],
+ ["Cidade","Não","Se ficar vazia, vale a cidade padrão da campanha","Betim"],
+ ["Estado","Não","Sigla com 2 letras. Se ficar vazio, vale o estado padrão da campanha","MG"],
+ ["Regional","Não","Em Betim: Alterosas, Centro, Citrolândia, Icaivera, Imbiruçu, Norte, Petrovale, PTB, Teresópolis ou Vianópolis. Vazio: o app descobre pelo bairro. Em outras cidades, escreva a regional ou deixe vazio","Centro"],
+ ["Tipo","Não","Eleitor a visitar, Comitê, Ponto de encontro, Liderança, Evento ou Outro. Vazio: entra como Eleitor a visitar","Eleitor a visitar"],
+ ["Autorizou contato","Não","Sim, se a pessoa autorizou o cadastro e o contato. Qualquer outra coisa vale como Não informado","Sim"],
+ ["Responsável (e-mail)","Não","E-mail exato de um cabo que já tem conta liberada. Ele passa a ver essa pessoa em Só os meus","cabo@email.com"],
+ ["Observações","Não","Texto livre. Linhas cuja observação começa com EXEMPLO são ignoradas na importação","Prefere visita à tarde"],
+ ["Latitude / Longitude","Não","Opcional. Sem elas, o app localiza o endereço sozinho","-19.9677 / -44.1983"],
+ ["","","",""],
+ ["* Informe pelo menos o endereço ou o bairro, senão a pessoa não aparece no mapa.","","",""],
+ ["Pessoas repetidas (mesmo nome e telefone, ou mesmo nome e endereço) são ignoradas na importação.","","",""]];
+function salvarPlanilha(nome,abas){
+  if(!window.XLSX){baixar(nome.replace(/\.xlsx$/,".csv"),csv(abas[0][1]));toast("A biblioteca de planilhas não carregou. Baixei em CSV.");return}
+  var wb=XLSX.utils.book_new();
+  abas.forEach(function(x){var ws=XLSX.utils.aoa_to_sheet(x[1]);if(x[2])ws["!cols"]=x[2].map(function(w){return{wch:w}});XLSX.utils.book_append_sheet(wb,ws,x[0])});
+  XLSX.writeFile(wb,nome)}
+function baixarModelo(){
+  var ex=[["Maria da Silva (exemplo)","(31) 99999-0000","Rua das Flores, 123, 32600-000","Centro","Betim","MG","Centro","Eleitor a visitar","Sim","cabo@email.com","EXEMPLO - apague esta linha","",""],
+          ["João Souza (exemplo)","(31) 98888-0000","Av. Brasil, 500","Jardim Teresópolis","Betim","MG","","Eleitor a visitar","Não","","EXEMPLO - apague esta linha","",""]];
+  salvarPlanilha("planilha-modelo.xlsx",[["Modelo",[MODELO].concat(ex),MODELO_W],["Instruções",INSTR,[24,14,70,32]]])}
+function exportar(qual){
+  var d=hoje();
+  if(qual==="eleitores"){
+    var em=function(l){var a=S.acessos.find(function(x){return x.id===l.responsavel});return a?a.email:(l.responsavelNome||"")};
+    var rows=[MODELO].concat(S.locais.map(function(l){return [l.nome||"",l.contato||"",l.endereco||"",l.bairro||"",l.cidade||"",l.estado||"",l.regional||"",l.tipo||"",l.consentimento==="sim"?"Sim":"Não",em(l),l.obs||"",hasLL(l)?l.lat:"",hasLL(l)?l.lng:""]}));
+    salvarPlanilha("eleitores-"+d+".xlsx",[["Modelo",rows,MODELO_W],["Instruções",INSTR,[24,14,70,32]]])}
+  else{
+    var vr=[["Data","Eleitor","Bairro","Cidade","Regional","Resultado","Registrado por","Observações"]].concat(S.visitas.map(function(v){return [fmtData(v.data),v.eleitorNome||"",v.bairro||"",v.cidade||"",v.regional||"",v.resultado?(RES[v.resultado]||v.resultado):"",v.porNome||"",v.obs||""]}));
+    salvarPlanilha("visitas-"+d+".xlsx",[["Visitas",vr,[12,28,20,16,14,22,22,40]]])}}
 boot();
 </script>
 </body>
