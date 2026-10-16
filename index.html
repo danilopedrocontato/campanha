@@ -35,8 +35,8 @@ p.sub{color:var(--mut);margin:0 0 14px}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 [hidden]{display:none!important}
 body.cabo .coord-only{display:none!important}
-.top{background:var(--surf);padding:10px 16px 0}
-.top .in{display:flex;align-items:center;justify-content:space-between;max-width:720px;margin:0 auto;gap:10px}
+header.top{background:var(--surf);padding:10px 16px 0}
+header.top .in{display:flex;align-items:center;justify-content:space-between;max-width:720px;margin:0 auto;gap:10px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand svg{width:42px;height:auto;flex:none;border-radius:5px}
 .brand img.cand{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 2px #ffdf00}
@@ -147,20 +147,44 @@ body.gated{overflow:hidden}
 .gcard button{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:none;border:2px solid transparent;border-radius:18px;color:#fff;font:600 .82rem inherit;font-family:inherit;cursor:pointer}
 .gcard button:active,.gcard button:focus-visible{border-color:#fff}
 .gate :focus-visible{outline:3px solid #ffdf00}
-.top{background:linear-gradient(135deg,#00541f 0%,#007a30 45%,#00a844 100%);color:#fff;padding:18px 16px 22px;border-radius:0 0 28px 28px;position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(0,100,40,.28)}
-.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#009c3b 33.3%,#ffdf00 33.3% 66.6%,#002776 66.6%)}
-.top::after{content:"";position:absolute;right:-70px;top:-90px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(255,223,0,.30),rgba(255,223,0,0) 65%);pointer-events:none}
-.top .in{position:relative;z-index:1}
+header.top{background:linear-gradient(135deg,#00541f 0%,#007a30 45%,#00a844 100%);color:#fff;padding:18px 16px 22px;border-radius:0 0 28px 28px;position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(0,100,40,.28)}
+header.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#009c3b 33.3%,#ffdf00 33.3% 66.6%,#002776 66.6%)}
+header.top::after{content:"";position:absolute;right:-70px;top:-90px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(255,223,0,.30),rgba(255,223,0,0) 65%);pointer-events:none}
+header.top .in{position:relative;z-index:1}
 .stripe{display:none}
 .brand b{color:#fff}.brand span{color:rgba(255,255,255,.9)}
-.top .ib{background:rgba(255,255,255,.2);color:#fff}
-.top .av{box-shadow:0 0 0 2px #ffdf00}
+header.top .ib{background:rgba(255,255,255,.2);color:#fff}
+header.top .av{box-shadow:0 0 0 2px #ffdf00}
 main{padding-top:14px}
 .warn{margin-top:12px;padding:12px 14px;border-radius:14px;background:#fff3c4;color:#5c4a00;font-size:.92rem;font-weight:600}
 .warnt{color:#b45309;font-weight:700}
 .bd.ne{background:#e5e7eb;color:#374151}.bd.nc{background:#e5e7eb;color:#7f1d1d}
 .gkeep{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-weight:600;font-size:.9rem}
 .gkeep input{width:20px;height:20px;flex:none;box-shadow:none}
+.toast{display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:var(--surf);color:var(--ink);box-shadow:0 10px 34px rgba(0,0,0,.30),0 0 0 1px var(--line);font-weight:600;animation:tup .22s ease-out;transition:opacity .25s,transform .25s}
+.toast.sai{opacity:0;transform:translate(-50%,10px)}
+.toast .ti{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;background:#008a31;color:#fff}
+.toast.erro .ti{background:#d6381f}.toast.info .ti{background:#e0a800;color:#2b2200}
+.toast .ti svg{width:16px;height:16px}
+@keyframes tup{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+.dlg{position:fixed;inset:0;z-index:4000;background:rgba(5,15,40,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;animation:dfade .16s}
+.dbox{background:var(--surf);color:var(--ink);border-radius:26px;max-width:380px;width:100%;padding:26px 22px 20px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.4);animation:dpop .2s ease-out}
+.dico{width:60px;height:60px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:#dff3e5;color:#007a30}
+.dico.dg{background:#fde3dc;color:#c2410c}.dico svg{width:30px;height:30px}
+.dbox h3{margin:0 0 6px;font-size:1.3rem;letter-spacing:-.01em}
+.dbox p{margin:0 0 18px;color:var(--mut);line-height:1.45}
+.dbox input{text-align:center;margin:-4px 0 16px;font-weight:700;letter-spacing:.08em}
+.dbt{display:flex;gap:10px}
+.dbt button{flex:1;padding:14px 8px;border:0;border-radius:15px;font:700 1rem inherit;font-family:inherit;cursor:pointer}
+.dbt .dc{background:var(--chip);color:var(--ink)}
+.dbt .dok{background:#008a31;color:#fff}.dbt .dok.dg{background:#d6381f}
+.dbt .dok:disabled{opacity:.4;cursor:not-allowed}
+@keyframes dfade{from{opacity:0}to{opacity:1}}
+@keyframes dpop{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+.fprev{width:104px;height:104px;border-radius:50%;margin:8px auto 4px;overflow:hidden;display:grid;place-items:center;background:var(--chip);box-shadow:0 0 0 3px #ffdf00}
+.fprev img{width:100%;height:100%;object-fit:cover;display:block}.fprev svg{width:76%;height:auto;border-radius:6px}
+.fact{display:flex;gap:10px}.fact .btn{margin-top:10px;flex:1;padding:12px 8px}
+.gver{text-align:center;font-size:.75rem;opacity:.75;margin-top:14px}
 </style>
 </head>
 <body>
@@ -175,7 +199,13 @@ var F={uf:"",cid:"",reg:"",bai:""},lastLoad=0,offlineOn=false,soMeus=null,pos=nu
 var $=function(s){return document.querySelector(s)};
 var esc=function(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
 var hoje=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-function toast(m){var t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove()},2600)}
+function toast(m,t){
+  if(!t)t=/^sem sinal/i.test(m)?"info":/^(erro|não|nao|informe|escolha|coordenadas|sem permiss|este eleitor|só o|a senha|o link|digite|a biblioteca|seu aparelho|biblioteca)/i.test(m)?"erro":"ok";
+  var o=document.querySelector(".toast");if(o)o.remove();
+  var d=document.createElement("div");d.className="toast "+t;d.setAttribute("role","status");
+  d.innerHTML='<span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(t==="ok"?'<path d="M5 12.5l4.5 4.5L19 7.5"/>':'<path d="M12 6v7M12 18h.01"/>')+'</svg></span><span>'+esc(m)+'</span>';
+  document.body.appendChild(d);
+  setTimeout(function(){d.classList.add("sai");setTimeout(function(){d.remove()},300)},3400)}
 var FLAG='<svg viewBox="0 0 64 45" role="img" aria-label="Bandeira do Brasil"><rect width="64" height="45" fill="#009c3b"/><polygon points="32,3 61,22.5 32,42 3,22.5" fill="#ffdf00"/><circle cx="32" cy="22.5" r="10.5" fill="#002776"/><path d="M22.5 21.5Q32 25.5 41.5 20" stroke="#fff" stroke-width="1.8" fill="none"/></svg>';
 var UFS={AC:"Acre",AL:"Alagoas",AP:"Amapá",AM:"Amazonas",BA:"Bahia",CE:"Ceará",DF:"Distrito Federal",ES:"Espírito Santo",GO:"Goiás",MA:"Maranhão",MT:"Mato Grosso",MS:"Mato Grosso do Sul",MG:"Minas Gerais",PA:"Pará",PB:"Paraíba",PR:"Paraná",PE:"Pernambuco",PI:"Piauí",RJ:"Rio de Janeiro",RN:"Rio Grande do Norte",RS:"Rio Grande do Sul",RO:"Rondônia",RR:"Roraima",SC:"Santa Catarina",SP:"São Paulo",SE:"Sergipe",TO:"Tocantins"};
 var CARGOS=["Presidente","Vice-presidente","Governador","Vice-governador","Senador","Deputado Federal","Deputado Estadual","Deputado Distrital","Prefeito","Vice-prefeito","Vereador"];
@@ -316,7 +346,7 @@ function gate(){
       '<label for="pw">Senha</label><div class="gpw"><input id="pw" type="password" autocomplete="'+(cri?'new-password':'current-password')+'"><button type="button" id="g_eye" aria-label="Mostrar senha">Mostrar</button></div>'+
       (cri?'':'<label class="gkeep"><input type="checkbox" id="g_keep"> Manter conectado neste aparelho (útil sem sinal)</label>')+'<div class="gerr" id="gm" role="alert" hidden></div><button class="gbtn" id="g_go" type="submit">'+(cri?'criar conta':'acessar conta')+'</button></form>';
     card='<div class="gcard"><button id="g_alt" type="button">'+ico("userplus")+'<span>'+(cri?'Já tenho conta':'Criar conta')+'</span></button><button id="g_rs" type="button">'+ico("chave")+'<span>Esqueci a senha</span></button><button id="g_sh2" type="button">'+ico("share")+'<span>Indicar</span></button></div>'}
-  g.innerHTML='<div class="gin">'+top+'<div class="gmid">'+mid+'</div>'+card+'</div>';
+  g.innerHTML='<div class="gin">'+top+'<div class="gmid">'+mid+'</div>'+card+'<div class="gver">Versão '+VERSAO+'</div></div>';
   var q=function(id){return document.getElementById(id)},erro=function(t){var m=q("gm");if(m){m.textContent=t;m.hidden=!t}};
   if(q("g_sh"))q("g_sh").onclick=indicar;if(q("g_sh2"))q("g_sh2").onclick=indicar;
   if(q("g_tr"))q("g_tr").onclick=function(){gtroca=true;gate()};
@@ -342,6 +372,22 @@ async function dbDo(p,msg){
   if(r==="lento")toast(offlineOn?"Sem sinal: salvo no aparelho. Será enviado quando a conexão voltar.":"Sem sinal. Mantenha o app aberto até a conexão voltar para enviar.");
   else if(msg)toast(msg);
   await loadAll();render();return true}
+function dialogo(o){
+  return new Promise(function(res){
+    var ov=document.createElement("div");ov.className="dlg";
+    var svg=o.perigo?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>';
+    ov.innerHTML='<div class="dbox" role="alertdialog" aria-modal="true" aria-labelledby="d_t"><div class="dico'+(o.perigo?' dg':'')+'">'+svg+'</div><h3 id="d_t">'+esc(o.titulo)+'</h3><p>'+esc(o.texto||"")+'</p>'+
+      (o.palavra?'<input id="d_i" placeholder="Digite '+esc(o.palavra)+'" autocomplete="off" autocapitalize="characters">':'')+
+      '<div class="dbt"><button class="dc" id="d_c" type="button">'+esc(o.cancel||"Cancelar")+'</button><button class="dok'+(o.perigo?' dg':'')+'" id="d_o" type="button"'+(o.palavra?' disabled':'')+'>'+esc(o.ok||"Confirmar")+'</button></div></div>';
+    document.body.appendChild(ov);
+    var kd;
+    var f=function(v){ov.remove();document.removeEventListener("keydown",kd);res(v)};
+    kd=function(e){if(e.key==="Escape")f(false)};document.addEventListener("keydown",kd);
+    ov.onclick=function(e){if(e.target===ov)f(false)};
+    var ok=ov.querySelector("#d_o"),inp=ov.querySelector("#d_i");
+    ov.querySelector("#d_c").onclick=function(){f(false)};ok.onclick=function(){f(true)};
+    if(inp){inp.oninput=function(){ok.disabled=inp.value.trim().toUpperCase()!==o.palavra};inp.focus()}else ok.focus()})}
+function confirmar(titulo,texto,o){return dialogo(Object.assign({titulo:titulo,texto:texto},o||{}))}
 /* ---------- filtros e contagens ---------- */
 function opts(arr,v,todos){return '<option value="">'+todos+'</option>'+arr.map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join("")}
 function filtros(){
@@ -490,22 +536,6 @@ function formLocal(l,ufo){
    '<label for="lo">Observações</label><textarea id="lo" rows="2">'+v("obs")+'</textarea>'}
 /* ---------- Equipe / Conta ---------- */
 /* ---------- janelas (campanha, áreas, material, editar local) ---------- */
-function sheetCampanha(){
-  var ufo=Object.keys(UFS).map(function(u){return '<option'+(u===(C.estado||"MG")?' selected':'')+'>'+u+'</option>'}).join(""),foto=C.foto||"";
-  var sh=sheet('<h2 style="margin-top:0">Dados da campanha</h2>'+
-   '<label for="c_n">Nome do candidato</label><input id="c_n" value="'+esc(C.nome)+'">'+
-   '<label for="c_u">Número</label><input id="c_u" value="'+esc(C.numero)+'" inputmode="numeric">'+
-   '<label for="c_g">Cargo disputado</label><input id="c_g" list="cg" value="'+esc(C.cargo)+'"><datalist id="cg">'+CARGOS.map(function(c){return '<option value="'+c+'">'}).join("")+'</datalist>'+
-   '<label for="c_p">Partido</label><input id="c_p" value="'+esc(C.partido)+'">'+
-   '<label for="c_e">Estado padrão</label><select id="c_e">'+ufo+'</select>'+
-   '<label for="c_c">Cidade padrão</label><input id="c_c" value="'+esc(C.cidade||"Betim")+'">'+
-   '<label for="c_f">Foto do candidato (aparece no lugar da bandeira)</label><input id="c_f" type="file" accept="image/*"><div class="meta" id="c_fm">'+(foto?'Foto atual mantida se você não escolher outra.':'Nenhuma foto ainda.')+'</div>'+
-   '<button class="btn" id="c_s">Salvar</button><button class="btn alt" id="c_x">Cancelar</button>');
-  sh.q("c_x").onclick=sh.close;
-  sh.q("c_f").onchange=function(){var f=this.files[0];if(!f)return;imgData(f,240,.82,true,function(d){foto=d;sh.q("c_fm").textContent="Foto pronta para salvar."})};
-  sh.q("c_s").onclick=async function(){
-    var d={nome:sh.q("c_n").value.trim(),numero:sh.q("c_u").value.trim(),cargo:sh.q("c_g").value.trim(),partido:sh.q("c_p").value.trim(),estado:sh.q("c_e").value,cidade:sh.q("c_c").value.trim()||"Betim",foto:foto};
-    var ok=await dbDo(col("config").doc("campanha").set(d,{merge:true}),"Dados da campanha salvos");if(ok)sh.close()}}
 function sheetAreas(uid){
   var a=S.acessos.find(function(x){return x.id===uid});if(!a)return;
   var keys=uniq(S.locais.map(function(l){return l.area}).concat(REGS.map(function(r){return "MG|Betim|"+r[0]}))),cur=a.areas||[];
@@ -603,7 +633,7 @@ function viewEquipe(){
   o+='<h2>Minha conta</h2><div class="item"><div class="prof"><span class="av big">'+av+'</span><div><b>'+esc(ME.nome)+'</b><div class="meta">'+esc(ME.email)+' · '+esc(ME.papel)+'</div></div></div>'+
    '<label for="pnome">Meu nome</label><input id="pnome" value="'+esc(ME.nome)+'" maxlength="60"><button class="btn alt" id="pn">Salvar nome</button>'+
    '<label for="pf">Foto de perfil</label><input id="pf" type="file" accept="image/*">'+
-   '<button class="btn alt" id="shr2">Indicar o app</button><button class="btn alt" id="inst" hidden>Instalar no celular</button>'+
+   '<button class="btn alt" id="shr2">Indicar o app</button><button class="btn alt" id="inst" hidden>Instalar no celular</button><button class="btn alt" id="upd">Atualizar o app</button>'+
    '<div class="meta" style="margin-top:8px">No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início.</div><div class="meta" style="margin-top:6px">Versão '+VERSAO+'</div><button class="link" id="out">Sair</button></div>';
   return o}
 function lerForm(q,l){
@@ -625,7 +655,7 @@ async function salvarVisita(){
   dbDo(col("visitas").add({eleitor:l.id,eleitorNome:l.nome,bairro:l.bairro||"",cidade:l.cidade||"",estado:l.estado||"",regional:l.regional||"",area:l.area,resultado:rs.value,obs:document.getElementById("vo").value.trim().slice(0,1000),data:hoje(),criado_por:ME.id,porNome:ME.nome,criado_em:Date.now()}),"Visita registrada")}
 async function salvarLocal(){
   var d=lerForm(function(i){return document.getElementById(i)},null);if(!d)return;
-  var k=chaveDup(d);if(S.locais.some(function(l){return chaveDup(l)===k})&&!confirm("Já existe um cadastro parecido (mesmo nome e telefone ou endereço). Adicionar mesmo assim?"))return;
+  var k=chaveDup(d);if(S.locais.some(function(l){return chaveDup(l)===k})&&!(await confirmar("Cadastro parecido","Já existe alguém com o mesmo nome e telefone ou endereço. Adicionar mesmo assim?",{ok:"Adicionar mesmo assim"})))return;
   d.criado_por=ME.id;d.criado_em=Date.now();
   var ok=await dbDo(col("locais").add(d),"Adicionado");if(ok)geocodeAll()}
 function importar(f){
@@ -675,10 +705,10 @@ function bindAll(){
   on("[data-map]",function(b){b.onclick=function(){selLoc=b.dataset.map;tab="mapa";render();scrollTo(0,0)}});
   on("[data-edit]",function(b){b.onclick=function(){editLocal(b.dataset.edit)}});
   on("[data-share]",function(b){b.onclick=function(){var m=S.materiais.find(function(x){return x.id===b.dataset.share});if(m)compartilhar(m)}});
-  on("[data-delm]",function(b){b.onclick=function(){if(confirm("Remover este material para toda a equipe?"))dbDo(col("materiais").doc(b.dataset.delm).delete(),"Material removido")}});
-  on("[data-delv]",function(b){b.onclick=function(){if(confirm("Excluir este registro de visita? O eleitor volta para a lista de visitas pendentes."))dbDo(col("visitas").doc(b.dataset.delv).delete())}});
-  on("[data-dell]",function(b){b.onclick=function(){if(confirm("Remover este item?"))dbDo(col("locais").doc(b.dataset.dell).delete())}});
-  on("[data-pap]",function(b){b.onclick=function(){dbDo(col("perfis").doc(b.dataset.uid).update({papel:b.dataset.pap}),"Acesso atualizado")}});
+  on("[data-delm]",function(b){b.onclick=async function(){if(await confirmar("Remover material","Todos da equipe deixam de ver este material.",{ok:"Remover",perigo:true}))dbDo(col("materiais").doc(b.dataset.delm).delete(),"Material removido")}});
+  on("[data-delv]",function(b){b.onclick=async function(){if(await confirmar("Excluir registro","O eleitor volta para a lista de visitas pendentes.",{ok:"Excluir",perigo:true}))dbDo(col("visitas").doc(b.dataset.delv).delete(),"Registro excluído")}});
+  on("[data-dell]",function(b){b.onclick=async function(){if(await confirmar("Remover cadastro","Este item some para todos da equipe. As visitas já registradas continuam no histórico.",{ok:"Remover",perigo:true}))dbDo(col("locais").doc(b.dataset.dell).delete(),"Removido")}});
+  on("[data-pap]",function(b){b.onclick=async function(){if(b.dataset.pap==="pendente"&&!(await confirmar("Bloquear acesso","A pessoa deixa de ver os dados até ser liberada de novo.",{ok:"Bloquear",perigo:true})))return;dbDo(col("perfis").doc(b.dataset.uid).update({papel:b.dataset.pap}),"Acesso atualizado")}});
   on("[data-areas]",function(b){b.onclick=function(){sheetAreas(b.dataset.areas)}});
   if(q("nm"))q("nm").onclick=sheetMaterial;
   if(q("ecamp"))q("ecamp").onclick=sheetCampanha;
@@ -692,10 +722,11 @@ function bindAll(){
     var b=db.batch();S.locais.filter(function(l){return l.geofail}).forEach(function(l){b.update(col("locais").doc(l.id),{geofail:false})});
     try{await b.commit()}catch(e){toast(errMsg(e));return}await loadAll();geocodeAll()};
   if(q("lf"))q("lf").onchange=function(){impMsg="";importar(this.files[0])};
-  if(q("lx"))q("lx").onclick=function(){
-    var t=prompt("Isto apaga TODOS os eleitores e locais, para todos os usuários, e não dá para desfazer. Antes, exporte uma cópia em Equipe. Para confirmar, digite APAGAR:");
-    if(t&&t.trim().toUpperCase()==="APAGAR"){selLoc=null;dbDo(delTodos())}};
+  if(q("lx"))q("lx").onclick=async function(){
+    var ok=await dialogo({titulo:"Apagar tudo?",texto:"Isto apaga TODOS os eleitores e locais, para todos os usuários, e não dá para desfazer. Antes, exporte uma cópia em Equipe.",ok:"Apagar tudo",perigo:true,palavra:"APAGAR"});
+    if(ok){selLoc=null;dbDo(delTodos(),"Tudo apagado")}};
   if(q("shr2"))q("shr2").onclick=indicar;
+  if(q("upd"))q("upd").onclick=forcarAtualizacao;
   if(q("inst")){q("inst").hidden=!dpr;q("inst").onclick=function(){if(dpr){dpr.prompt();dpr=null;q("inst").hidden=true}}}
   if(q("pn"))q("pn").onclick=function(){var n=q("pnome").value.trim();if(!n){toast("Informe seu nome");return}
     dbDo(col("perfis").doc(ME.id).update({nome:n}),"Nome atualizado").then(async function(ok){if(ok){await loadMe();render()}})};
@@ -759,7 +790,34 @@ function exportar(qual){
   else{
     var vr=[["Data","Eleitor","Bairro","Cidade","Regional","Resultado","Registrado por","Observações"]].concat(S.visitas.map(function(v){return [fmtData(v.data),v.eleitorNome||"",v.bairro||"",v.cidade||"",v.regional||"",v.resultado?(RES[v.resultado]||v.resultado):"",v.porNome||"",v.obs||""]}));
     salvarPlanilha("visitas-"+d+".xlsx",[["Visitas",vr,[12,28,20,16,14,22,22,40]]])}}
-var VERSAO="2026-10-15.4";
+var VERSAO="2026-10-16.1";
+function sheetCampanha(){
+  var ufo=Object.keys(UFS).map(function(u){return '<option'+(u===(C.estado||"MG")?' selected':'')+'>'+u+'</option>'}).join(""),foto=C.foto||"";
+  var prev=function(){return imgOk(foto)?imgTag(foto):FLAG};
+  var sh=sheet('<h2 style="margin-top:0">Dados da campanha</h2>'+
+   '<label>Foto do candidato (aparece no lugar da bandeira)</label><div class="fprev" id="c_pv">'+prev()+'</div>'+
+   '<div class="fact"><label class="btn alt" for="c_f" style="cursor:pointer">'+(imgOk(foto)?'Trocar foto':'Escolher foto')+'</label><button type="button" class="btn alt" id="c_r"'+(imgOk(foto)?'':' hidden')+' style="color:#d6381f">Remover foto</button></div><input id="c_f" type="file" accept="image/*" hidden><div class="meta" id="c_fm" style="text-align:center"></div>'+
+   '<label for="c_n">Nome do candidato</label><input id="c_n" value="'+esc(C.nome)+'">'+
+   '<label for="c_u">Número</label><input id="c_u" value="'+esc(C.numero)+'" inputmode="numeric">'+
+   '<label for="c_g">Cargo disputado</label><input id="c_g" list="cg" value="'+esc(C.cargo)+'"><datalist id="cg">'+CARGOS.map(function(c){return '<option value="'+c+'">'}).join("")+'</datalist>'+
+   '<label for="c_p">Partido</label><input id="c_p" value="'+esc(C.partido)+'">'+
+   '<label for="c_e">Estado padrão</label><select id="c_e">'+ufo+'</select>'+
+   '<label for="c_c">Cidade padrão</label><input id="c_c" value="'+esc(C.cidade||"Betim")+'">'+
+   '<button class="btn" id="c_s">Salvar</button><button class="btn alt" id="c_x">Cancelar</button>');
+  var atual=function(msg){sh.q("c_pv").innerHTML=prev();sh.q("c_r").hidden=!imgOk(foto);sh.q("c_fm").textContent=msg||"";document.querySelector('label[for="c_f"]').textContent=imgOk(foto)?"Trocar foto":"Escolher foto"};
+  sh.q("c_x").onclick=sh.close;
+  sh.q("c_f").onchange=function(){var f=this.files[0];if(!f)return;imgData(f,240,.82,true,function(d){foto=d;atual("Nova foto pronta. Toque em Salvar para aplicar.")})};
+  sh.q("c_r").onclick=async function(){
+    var ok=await confirmar("Remover foto","A bandeira do Brasil volta a aparecer no lugar da foto do candidato.",{ok:"Remover",perigo:true});
+    if(ok){foto="";atual("Foto removida. Toque em Salvar para aplicar.")}};
+  sh.q("c_s").onclick=async function(){
+    var d={nome:sh.q("c_n").value.trim(),numero:sh.q("c_u").value.trim(),cargo:sh.q("c_g").value.trim(),partido:sh.q("c_p").value.trim(),estado:sh.q("c_e").value,cidade:sh.q("c_c").value.trim()||"Betim",foto:foto};
+    var ok=await dbDo(col("config").doc("campanha").set(d,{merge:true}),"Dados da campanha salvos");if(ok)sh.close()}}
+async function forcarAtualizacao(){
+  toast("Atualizando o app...","info");
+  try{var rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(function(r){return r.unregister()}))}catch(e){}
+  try{var ks=await caches.keys();await Promise.all(ks.map(function(k){return caches.delete(k)}))}catch(e){}
+  setTimeout(function(){location.replace(location.pathname+"?v="+Date.now())},700)}
 boot();
 </script>
 </body>
